@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/* SF Pro Text */
+/* Variants: light, regular, medium, semibold, bold, heavy */
+
+@font-face {
+    font-family: "SF Pro Text";
+    src: url("/src/assets/fonts/sf/text/SF-PRO-TEXT-LIGHT.OTF") format("opentype");
+    font-weight: 100;
+}
+
+@font-face {
+    font-family: "SF Pro Text";
+    src: url("/src/assets/fonts/sf/text/SF-PRO-TEXT-REGULAR.OTF") format("opentype");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "SF Pro Text";
+    src: url("/src/assets/fonts/sf/text/SF-PRO-TEXT-MEDIUM.OTF") format("opentype");
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: "SF Pro Text";
+    src: url("/src/assets/fonts/sf/text/SF-PRO-TEXT-SEMIBOLD.OTF") format("opentype");
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: "SF Pro Text";
+    src: url("/src/assets/fonts/sf/text/SF-PRO-TEXT-BOLD.OTF") format("opentype");
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: "SF Pro Text";
+    src: url("/src/assets/fonts/sf/text/SF-PRO-TEXT-HEAVY.OTF") format("opentype");
+    font-weight: 800;
+}
+
+/* SF Pro Display */
+/* Variants: ultraLight, thin, light, regular, medium, semibold, bold, heavy, blackItalic */
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("/src/assets/fonts/sf/display/SF-PRO-DISPLAY-ULTRALIGHT.OTF") format("opentype");
+    font-weight: 100;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("/src/assets/fonts/sf/display/SF-PRO-DISPLAY-THIN.OTF") format("opentype");
+    font-weight: 200;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("/src/assets/fonts/sf/display/SF-PRO-DISPLAY-LIGHT.OTF") format("opentype");
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("/src/assets/fonts/sf/display/SF-PRO-DISPLAY-REGULAR.OTF") format("opentype");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("/src/assets/fonts/sf/display/SF-PRO-DISPLAY-MEDIUM.OTF") format("opentype");
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("/src/assets/fonts/sf/display/SF-PRO-DISPLAY-SEMIBOLD.OTF") format("opentype");
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("/src/assets/fonts/sf/display/SF-PRO-DISPLAY-BOLD.OTF") format("opentype");
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("/src/assets/fonts/sf/display/SF-PRO-DISPLAY-HEAVY.OTF") format("opentype");
+    font-weight: 800;
+}
+
+@font-face {
+    font-family: "SF Pro Icons";
+    src: url("/src/assets/fonts/sf/display/SF-PRO-DISPLAY-BLACKITALIC.OTF") format("opentype");
+    font-weight: 900;
+    font-style: italic;
+}
+
+/* SF Mono */
+/* Variants: light, regular, medium, semibold, bold, heavy */
+
+@font-face {
+    font-family: "SF Mono";
+    src: url("/src/assets/fonts/sf/mono/SF-MONO-LIGHT.TTF") format("truetype");
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: "SF Mono";
+    src: url("/src/assets/fonts/sf/mono/SF-MONO-REGULAR.TTF") format("truetype");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "SF Mono";
+    src: url("/src/assets/fonts/sf/mono/SF-MONO-MEDIUM.TTF") format("truetype");
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: "SF Mono";
+    src: url("/src/assets/fonts/sf/mono/SF-MONO-SEMIBOLD.TTF") format("truetype");
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: "SF Mono";
+    src: url("/src/assets/fonts/sf/mono/SF-MONO-BOLD.TTF") format("truetype");
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: "SF Mono";
+    src: url("/src/assets/fonts/sf/mono/SF-MONO-HEAVY.TTF") format("truetype");
+    font-weight: 800;
+}
