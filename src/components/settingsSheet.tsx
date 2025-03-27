@@ -17,61 +17,63 @@ import {
 } from "./shadcn/select";
 import { HStack, VStack } from "./layout";
 import { Text } from "./text";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Checkbox } from "./shadcn/checkbox";
+
+const ACTIVATION_KEY_COMMANDS = [
+  {
+    labels: {
+      windows: "CTRL + ALT + N",
+      mac: "CMD + ALT + N",
+    },
+    values: {
+      windows: "ctrl+alt+n",
+      mac: "cmd+alt+n",
+    },
+  },
+  {
+    labels: {
+      windows: "CTRL + Shift + N",
+      mac: "CMD + Shift + N",
+    },
+    values: {
+      windows: "ctrl+shift+n",
+      mac: "cmd+shift+n",
+    },
+  },
+  {
+    labels: {
+      windows: "CTRL + ALT + Space",
+      mac: "CMD + ALT + Space",
+    },
+    values: {
+      windows: "ctrl+alt+space",
+      mac: "cmd+alt+space",
+    },
+  },
+  {
+    labels: {
+      windows: "CTRL + Shift + Tilde (~)",
+      mac: "CMD + Shift + Tilde (~)",
+    },
+    values: {
+      windows: "ctrl+shift+~",
+      mac: "cmd+shift+~",
+    },
+  },
+];
 
 export const SettingsSheet = () => {
-  const activationKeyCommands = [
-    {
-      labels: {
-        windows: "CTRL + ALT + N",
-        mac: "CMD + ALT + N",
-      },
-      values: {
-        windows: "ctrl+alt+n",
-        mac: "cmd+alt+n",
-      },
-    },
-    {
-      labels: {
-        windows: "CTRL + Shift + N",
-        mac: "CMD + Shift + N",
-      },
-      values: {
-        windows: "ctrl+shift+n",
-        mac: "cmd+shift+n",
-      },
-    },
-    {
-      labels: {
-        windows: "CTRL + ALT + Space",
-        mac: "CMD + ALT + Space",
-      },
-      values: {
-        windows: "ctrl+alt+space",
-        mac: "cmd+alt+space",
-      },
-    },
-    {
-      labels: {
-        windows: "CTRL + Shift + Tilde (~)",
-        mac: "CMD + Shift + Tilde (~)",
-      },
-      values: {
-        windows: "ctrl+shift+~",
-        mac: "cmd+shift+~",
-      },
-    },
-  ];
-
   const [defaultLanguage, setDefaultLanguage] = useState("plaintext");
   const [activationKeyCommand, setActivationKeyCommand] = useState(
-    activationKeyCommands[0]
+    ACTIVATION_KEY_COMMANDS[0]
   );
   const [fontSize, setFontSize] = useState("16px");
   const [fontFamily, setFontFamily] = useState({
     plaintext: "Inter",
     code: "Roboto Mono",
   });
+  const [autoFormat, setAutoFormat] = useState(false);
 
   const operatingSystem =
     navigator.userAgent.toLowerCase().includes("mac") ||
@@ -87,7 +89,7 @@ export const SettingsSheet = () => {
           <Cog className="w-4 h-4 text-foreground" />
         </div>
       </SheetTrigger>
-      <SheetContent className="gap-0 min-w-[500px] outline-none">
+      <SheetContent className="gap-0 min-w-[500px] outline-none select-none">
         <SheetHeader className="pb-0">
           <SheetTitle className="text-lg font-semibold">Settings</SheetTitle>
           <SheetDescription className="text-xs text-pretty max-w-sm">
@@ -159,9 +161,9 @@ export const SettingsSheet = () => {
               value={activationKeyCommand.values[operatingSystem]}
               onValueChange={(value) =>
                 setActivationKeyCommand(
-                  activationKeyCommands.find(
+                  ACTIVATION_KEY_COMMANDS.find(
                     (command) => command.values[operatingSystem] === value
-                  ) || activationKeyCommands[0]
+                  ) || ACTIVATION_KEY_COMMANDS[0]
                 )
               }
             >
@@ -171,7 +173,7 @@ export const SettingsSheet = () => {
                 />
               </SelectTrigger>
               <SelectContent>
-                {activationKeyCommands.map((command) => (
+                {ACTIVATION_KEY_COMMANDS.map((command) => (
                   <SelectItem
                     key={command.values[operatingSystem]}
                     value={command.values[operatingSystem]}
@@ -333,6 +335,33 @@ export const SettingsSheet = () => {
                   ))}
                 </SelectContent>
               </Select>
+            </HStack>
+          </VStack>
+
+          <VStack
+            wrap="nowrap"
+            fullWidth
+            alignment="leading"
+            distribution="start"
+            spacing="sm2"
+          >
+            <VStack spacing="xs">
+              <Text variant="body2">Auto Format (Beta)</Text>
+              <Text
+                variant="caption"
+                color="muted-foreground"
+                className="text-[11px]"
+              >
+                Automatically format your code when you paste it into Flick.
+              </Text>
+            </VStack>
+            <HStack fullWidth alignment="center" distribution="start">
+              <Checkbox
+                className="data-[state=checked]:bg-foreground/80 data-[state=checked]:border-none outline-none ring-0"
+                checked={autoFormat}
+                onCheckedChange={(checked) => setAutoFormat(checked === true)}
+              />
+              <Text variant="caption">Format code automatically</Text>
             </HStack>
           </VStack>
         </VStack>

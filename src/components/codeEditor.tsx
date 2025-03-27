@@ -1,88 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Text } from "./text";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/shadcn/select";
-import { Check, CircleSlash, Loader2, Circle } from "lucide-react";
-import {
-  Tooltip,
-  TooltipProvider,
-  TooltipTrigger,
-  TooltipContent,
-} from "./shadcn/tooltip";
+import { loadPrettier, formatCode } from "@/lib/codeFormatter";
+import { detectCodeLanguage } from "@/lib/utils";
+import { LINE_HEIGHT, scrollbarStyles } from "@/lib/editorStyles";
+import { EditorStatusIndicator } from "./editor/EditorStatusIndicator";
+import { EditorGutter } from "./editor/EditorGutter";
+import { EditorLanguageSelector } from "./editor/EditorLanguageSelector";
+import { createEditorHandlers } from "./editor/EditorHandlers";
 
-const scrollbarStyles = `
-  /* style scrollbar for macOS */
-  .textarea-scrollbar::-webkit-scrollbar {
-    width: 9px;
-    height: 9px;
-  }
-
-  .textarea-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(140, 140, 140, 0.3);
-    border-radius: 10px;
-    background-clip: padding-box;
-    border: 16px solid transparent;
-    background-clip: padding-box;
-    border-radius: 9999px;
-  }
-  
-  .textarea-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(140, 140, 140, 0.5);
-  }
-  
-  .textarea-scrollbar::-webkit-scrollbar-thumb:active {
-    width: 12px;
-    background-color: rgba(140, 140, 140, 0.6);
-  }
-  
-  .textarea-scrollbar::-webkit-scrollbar-track {
-    background-color: transparent;
-  }
-  
-  /* For Firefox */
-  .textarea-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(140, 140, 140, 0.3) transparent;
-  }
-  
-  .textarea-scrollbar:active {
-    scrollbar-width: auto;
-  }
-  
-  /* style scrollbar for textarea */
-  .scrollbar-textarea::-webkit-scrollbar {
-    width: 9px;
-    height: 9px;
-  }
-  
-  .scrollbar-textarea::-webkit-scrollbar-thumb {
-    background-color: rgba(140, 140, 140, 0.3);
-    border-radius: 10px;
-    background-clip: padding-box;
-    border: 2px solid transparent;
-  }
-  
-  .scrollbar-textarea::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(140, 140, 140, 0.5);
-  }
-  
-  .scrollbar-textarea::-webkit-scrollbar-thumb:active {
-    width: 12px;
-    background-color: rgba(140, 140, 140, 0.6);
-  }
-  
-  .scrollbar-textarea::-webkit-scrollbar-track {
-    background-color: transparent;
-  }
-`;
-
-interface CodeEditorProps {
+export interface CodeEditorProps {
   initialValue?: string;
   language?: string;
   onChange?: (value: string) => void;
@@ -91,6 +17,8 @@ interface CodeEditorProps {
   readOnly?: boolean;
   className?: string;
   height?: string | number;
+  autoDetectLanguage?: boolean;
+  autoFormat?: boolean;
 }
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
@@ -102,6 +30,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   readOnly = false,
   className = "",
   height = "300px",
+  autoDetectLanguage = true,
+  autoFormat = true,
 }) => {
   const [value, setValue] = useState(initialValue);
   const [lines, setLines] = useState<string[]>(initialValue.split("\n"));
@@ -121,13 +51,21 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const [currentLanguage, setCurrentLanguage] = useState(language);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholder);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+  const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
+  const [selectedFormatLanguage, setSelectedFormatLanguage] = useState("auto");
+  const [isFirstPaste, setIsFirstPaste] = useState(true);
+  const [hasDetectedOnce, setHasDetectedOnce] = useState(false);
+  const [formatErrorMessage, setFormatErrorMessage] = useState<string | null>(
+    null
+  );
+  const [formatSuccess, setFormatSuccess] = useState<boolean>(false);
+  const formatSuccessTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [saveState, setSaveState] = useState<
     "empty" | "editing" | "waiting" | "saving" | "saved"
   >(initialValue === "" ? "empty" : "saved");
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const LINE_HEIGHT = 21;
+  const detectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const styleElement = document.createElement("style");
@@ -150,13 +88,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   useEffect(() => {
     const newLines = value.split("\n");
     setLines(newLines);
-  }, [value]);
 
-  useEffect(() => {
-    if (textareaRef.current && gutterRef.current) {
-      gutterRef.current.scrollTop = textareaRef.current.scrollTop;
+    if (formatErrorMessage && (value !== initialValue || value === "")) {
+      setFormatErrorMessage(null);
     }
-  }, [lines.length]);
+  }, [value, formatErrorMessage, initialValue]);
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -236,89 +172,114 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     }
   }, [cursorPosition, value]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const target = e.target as HTMLTextAreaElement;
-      const start = target.selectionStart;
-      const end = target.selectionEnd;
+  useEffect(() => {
+    if (textareaRef.current && gutterRef.current) {
+      gutterRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
+  }, [lines.length]);
 
-      const newValue = value.substring(0, start) + "  " + value.substring(end);
-
-      setValue(newValue);
-
-      setTimeout(() => {
-        target.selectionStart = target.selectionEnd = start + 2;
-        setCursorPosition(start + 2);
-      }, 0);
-
-      if (onChange) {
-        onChange(newValue);
+  useEffect(() => {
+    if (
+      saveState === "saved" &&
+      selectedFormatLanguage === "auto" &&
+      currentLanguage === "code" &&
+      value.length > 50
+    ) {
+      const detected = detectCodeLanguage(value);
+      if (detected) {
+        setDetectedLanguage(detected);
       }
     }
-  };
+  }, [saveState, value, currentLanguage, selectedFormatLanguage]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    setValue(newValue);
+  useEffect(() => {
+    const performInitialFormat = async () => {
+      if (
+        detectedLanguage &&
+        hasDetectedOnce === false &&
+        currentLanguage === "code" &&
+        autoFormat
+      ) {
+        setHasDetectedOnce(true);
+        const result = await formatCode(value, detectedLanguage);
 
-    if (newValue === "") {
-      setSaveState("empty");
-    } else {
-      setSaveState("editing");
+        if (result.success) {
+          if (result.code !== value) {
+            setValue(result.code);
+            if (onChange) {
+              onChange(result.code);
+            }
+            setFormatSuccess(true);
+          }
+        } else if (result.error) {
+          setFormatErrorMessage(result.error);
+        }
+      }
+    };
 
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+    performInitialFormat();
+  }, [
+    detectedLanguage,
+    hasDetectedOnce,
+    currentLanguage,
+    autoFormat,
+    value,
+    onChange,
+  ]);
+
+  useEffect(() => {
+    loadPrettier().catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (formatSuccess) {
+      // Clear any existing timeout
+      if (formatSuccessTimeoutRef.current) {
+        clearTimeout(formatSuccessTimeoutRef.current);
       }
 
-      saveTimeoutRef.current = setTimeout(() => {
-        setSaveState("waiting");
-
-        setTimeout(() => {
-          setSaveState("saving");
-
-          setTimeout(() => {
-            setSaveState("saved");
-          }, 800);
-        }, 200);
-      }, 1500);
+      // Set a new timeout to clear the success state after 2 seconds
+      formatSuccessTimeoutRef.current = setTimeout(() => {
+        setFormatSuccess(false);
+      }, 2000);
     }
 
-    setLastEdited(
-      new Date().toLocaleString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      })
-    );
-
-    setTimeout(() => {
-      if (textareaRef.current && gutterRef.current) {
-        gutterRef.current.scrollTop = textareaRef.current.scrollTop;
+    // Clean up on unmount
+    return () => {
+      if (formatSuccessTimeoutRef.current) {
+        clearTimeout(formatSuccessTimeoutRef.current);
       }
-    }, 0);
+    };
+  }, [formatSuccess]);
 
-    if (onChange) {
-      onChange(newValue);
-    }
+  const handleFormatError = (error: string) => {
+    setFormatErrorMessage(error);
   };
 
-  const handleClick = () => {
-    if (textareaRef.current) {
-      setCursorPosition(textareaRef.current.selectionStart);
-    }
-  };
-
-  const handleSelect = () => {
-    if (textareaRef.current) {
-      setCursorPosition(textareaRef.current.selectionStart);
-    }
-  };
-
-  const displayLines = lines.length > 0 ? lines : [""];
+  const handlers = createEditorHandlers({
+    value,
+    setValue,
+    textareaRef,
+    gutterRef,
+    setCursorPosition,
+    onChange,
+    setLastEdited,
+    setSaveState,
+    saveTimeoutRef,
+    setDetectedLanguage,
+    currentLanguage,
+    detectionTimeoutRef,
+    setIsFirstPaste,
+    isFirstPaste,
+    setHasDetectedOnce,
+    detectedLanguage,
+    autoDetectLanguage,
+    autoFormat,
+    onFormatError: handleFormatError,
+    setFormatErrorMessage,
+    setFormatSuccess,
+    formatSuccess,
+  });
 
   return (
     <div
@@ -326,116 +287,40 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       style={{ height }}
     >
       <div className="flex justify-between items-center px-3 py-1 border-b border-border/50">
-        <Select value={currentLanguage} onValueChange={setCurrentLanguage}>
-          <SelectTrigger className="w-auto px-2 h-6 border-none outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium transition-colors">
-            <SelectValue placeholder={language} />
-          </SelectTrigger>
-          <SelectContent>
-            {["plaintext", "code"].map((language) => (
-              <SelectItem key={language} value={language}>
-                <Text
-                  variant="caption"
-                  color="muted-foreground"
-                  noSelect
-                  weight="medium"
-                >
-                  {language.charAt(0).toUpperCase() + language.slice(1)}
-                </Text>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-5 h-5">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  {saveState === "empty" && (
-                    <CircleSlash className="w-3.5 h-3.5 text-muted-foreground" />
-                  )}
-                  {saveState === "editing" && (
-                    <Circle className="w-3 h-3 text-foreground/80 fill-foreground/80" />
-                  )}
-                  {saveState === "waiting" && (
-                    <Circle className="w-3 h-3 text-foreground/80 fill-foreground/80" />
-                  )}
-                  {saveState === "saving" && (
-                    <Loader2 className="w-3.5 h-3.5 text-foreground/80 animate-spin" />
-                  )}
-                  {saveState === "saved" && (
-                    <Check className="w-3.5 h-3.5 text-foreground/80" />
-                  )}
-                </TooltipTrigger>
-                <TooltipContent
-                  sideOffset={
-                    saveState === "editing" || saveState === "waiting" ? 5 : 4
-                  }
-                >
-                  {saveState === "empty" && "Flick is empty"}
-                  {saveState === "editing" && "Flick is being edited"}
-                  {saveState === "waiting" && "Flick is waiting for saving"}
-                  {saveState === "saving" && "Saving Flick..."}
-                  {saveState === "saved" && "Flick saved"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <Text
-            variant="caption"
-            color="muted-foreground"
-            noSelect
-            weight="medium"
-          >
-            {lastEdited.toLocaleString()}
-          </Text>
-        </div>
+        <EditorLanguageSelector
+          currentLanguage={currentLanguage}
+          setCurrentLanguage={setCurrentLanguage}
+          detectedLanguage={detectedLanguage}
+          onFormatClick={handlers.handleFormatClick}
+          value={value}
+          isFirstPaste={isFirstPaste}
+          formatError={formatErrorMessage !== null}
+          formatSuccess={formatSuccess}
+          setFormatSuccess={setFormatSuccess}
+        />
+
+        <EditorStatusIndicator saveState={saveState} lastEdited={lastEdited} />
       </div>
 
       <div
         ref={wrapperRef}
         className="flex flex-1 overflow-hidden relative w-full"
       >
-        <div
+        <EditorGutter
           ref={gutterRef}
-          className="w-[3.5rem] border-r border-border/30 overflow-hidden overflow-y-auto absolute left-0 top-0 bottom-0 z-10 pointer-events-none"
-          style={{
-            overscrollBehavior: "contain",
-            scrollbarWidth: "none",
-          }}
-        >
-          <div className="backdrop-blur-2xl bg-card/50 pt-1 pb-3">
-            {displayLines.map((_, i) => (
-              <div
-                key={i}
-                className="text-right pr-2"
-                style={{
-                  height: `${LINE_HEIGHT}px`,
-                  lineHeight: `${LINE_HEIGHT}px`,
-                }}
-              >
-                <Text
-                  variant="caption2"
-                  color={lineNumberColor}
-                  noSelect
-                  weight="regular"
-                  textStyles={["monospaced"]}
-                  className="inline-block text-foreground/50 mix-blend-screen"
-                >
-                  {i + 1}
-                </Text>
-              </div>
-            ))}
-          </div>
-        </div>
+          lines={lines}
+          lineNumberColor={lineNumberColor}
+        />
 
         <div className="w-full h-full relative flex-grow textarea-scrollbar">
           <textarea
             ref={textareaRef}
             value={value}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            onClick={handleClick}
-            onSelect={handleSelect}
+            onChange={handlers.handleChange}
+            onKeyDown={handlers.handleKeyDown}
+            onClick={handlers.handleClick}
+            onSelect={handlers.handleSelect}
+            onPaste={handlers.handlePaste}
             placeholder={currentPlaceholder}
             readOnly={readOnly}
             className={cn(
@@ -448,7 +333,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 currentLanguage === "code"
                   ? "Roboto Mono, monospace"
                   : undefined,
-              fontSize: "0.875rem", // text-sm
+              fontSize: "0.875rem",
               lineHeight: `${LINE_HEIGHT}px`,
               whiteSpace: "pre",
               scrollbarColor: "rgba(140, 140, 140, 0.3) transparent",

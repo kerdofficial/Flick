@@ -1,10 +1,9 @@
 import "./App.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Main, HStack, VStack } from "./components/layout";
-import { Text } from "./components/text";
+import { Main, VStack } from "./components/layout";
 import { Titlebar } from "./components/Titlebar";
-import { TextBox } from "./components/textBox";
 import { CodeEditor } from "./components/codeEditor";
+import { Toaster } from "@/components/shadcn/sonner";
 
 function App() {
   return (
@@ -32,6 +31,7 @@ function App() {
           <CodeEditor height="100%" />
         </VStack>
       </Main>
+      <Toaster />
     </ThemeProvider>
   );
 }
