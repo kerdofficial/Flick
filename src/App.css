@@ -3,12 +3,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@import "./assets/fonts/fonts.css";
+@import "./assets/fonts/inter/inter.css";
+@import "./assets/fonts/roboto-mono/roboto-mono.css";
 
 :root {
-  font-family: "SF Pro Text", sans-serif;
-  -webkit-font-smoothing: auto;
-  -moz-osx-font-smoothing: auto;
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: 0.01em;
 
   /* Light mode colors */
   --background: oklch(1 0 0);
