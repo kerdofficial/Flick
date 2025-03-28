@@ -2,9 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { loadPrettier, formatCode } from "@/lib/codeFormatter";
 import { detectCodeLanguage } from "@/lib/utils";
-import { LINE_HEIGHT, scrollbarStyles } from "@/lib/editorStyles";
+import { scrollbarStyles } from "@/lib/editorStyles";
 import { EditorStatusIndicator } from "./editor/EditorStatusIndicator";
-import { EditorGutter } from "./editor/EditorGutter";
 import { EditorLanguageSelector } from "./editor/EditorLanguageSelector";
 import { createEditorHandlers } from "./editor/EditorHandlers";
 
@@ -13,7 +12,6 @@ export interface CodeEditorProps {
   language?: string;
   onChange?: (value: string) => void;
   placeholder?: string;
-  lineNumberColor?: string;
   readOnly?: boolean;
   className?: string;
   height?: string | number;
@@ -26,7 +24,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   language = "plaintext",
   onChange,
   placeholder = "Type here...",
-  lineNumberColor = "muted-foreground",
   readOnly = false,
   className = "",
   height = "300px",
@@ -151,7 +148,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
       const visibleWidth = textarea.clientWidth;
       const scrollLeft = textarea.scrollLeft;
-      const paddingLeft = 16 * 4;
+      const paddingLeft = 0 * 4;
 
       const cursorX = textWidth - paddingLeft * 4;
 
@@ -159,15 +156,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         textarea.scrollLeft = Math.max(0, cursorX - paddingLeft - 10);
       } else if (cursorX > scrollLeft + visibleWidth - 20) {
         textarea.scrollLeft = cursorX - visibleWidth + 40;
-      }
-
-      const lineTop = cursorLine * LINE_HEIGHT;
-      const visibleHeight = textarea.clientHeight;
-
-      if (lineTop < textarea.scrollTop) {
-        textarea.scrollTop = lineTop;
-      } else if (lineTop + LINE_HEIGHT > textarea.scrollTop + visibleHeight) {
-        textarea.scrollTop = lineTop - visibleHeight + LINE_HEIGHT + 10;
       }
     }
   }, [cursorPosition, value]);
@@ -233,18 +221,15 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
   useEffect(() => {
     if (formatSuccess) {
-      // Clear any existing timeout
       if (formatSuccessTimeoutRef.current) {
         clearTimeout(formatSuccessTimeoutRef.current);
       }
 
-      // Set a new timeout to clear the success state after 2 seconds
       formatSuccessTimeoutRef.current = setTimeout(() => {
         setFormatSuccess(false);
       }, 2000);
     }
 
-    // Clean up on unmount
     return () => {
       if (formatSuccessTimeoutRef.current) {
         clearTimeout(formatSuccessTimeoutRef.current);
@@ -283,10 +268,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
   return (
     <div
-      className={`bg-card rounded-lg overflow-hidden flex flex-col ${className} w-full`}
+      className={`bg-card overflow-hidden flex flex-col ${className} w-full relative`}
       style={{ height }}
     >
-      <div className="flex justify-between items-center px-3 py-1 border-b border-border/50">
+      <div className="flex justify-between items-center px-3 py-1 border-b border-border/50 bg-card/40 absolute top-0 w-full h-10 z-50 backdrop-blur-xl">
         <EditorLanguageSelector
           currentLanguage={currentLanguage}
           setCurrentLanguage={setCurrentLanguage}
@@ -306,13 +291,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         ref={wrapperRef}
         className="flex flex-1 overflow-hidden relative w-full"
       >
-        <EditorGutter
-          ref={gutterRef}
-          lines={lines}
-          lineNumberColor={lineNumberColor}
-        />
-
-        <div className="w-full h-full relative flex-grow textarea-scrollbar">
+        <div className="w-full h-full relative flex-grow textarea-scrollbar pt-11">
           <textarea
             ref={textareaRef}
             value={value}
@@ -324,20 +303,16 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             placeholder={currentPlaceholder}
             readOnly={readOnly}
             className={cn(
-              "pl-16 pr-4 pt-1 mb-3 bg-transparent w-full h-full outline-none resize-none overflow-auto scrollbar-textarea selection:bg-foreground/75 selection:text-accent",
-              currentLanguage === "code" && "font-medium",
-              currentLanguage === "plaintext" && "font-normal"
+              "px-4 pb-4 bg-transparent w-full h-full outline-none resize-none overflow-auto scrollbar-textarea selection:bg-foreground/75 selection:text-accent font-medium"
             )}
             style={{
               fontFamily:
                 currentLanguage === "code"
                   ? "Roboto Mono, monospace"
-                  : undefined,
-              fontSize: "0.875rem",
-              lineHeight: `${LINE_HEIGHT}px`,
+                  : "Inter, sans-serif",
+              fontSize: "1rem",
               whiteSpace: "pre",
               scrollbarColor: "rgba(140, 140, 140, 0.3) transparent",
-              letterSpacing: currentLanguage === "plaintext" ? "0.015em" : "0",
             }}
             spellCheck={false}
           />

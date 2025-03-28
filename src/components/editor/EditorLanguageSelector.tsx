@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Text } from "../text";
 import {
   Select,
@@ -25,7 +25,9 @@ import {
   AlertDialogTitle,
 } from "@/components/shadcn/alert-dialog";
 import { cn } from "@/lib/utils";
-
+import { Separator } from "../shadcn/separator";
+import { useDisclosure } from "@/hooks/useDisclosure";
+import { AnimatePresence } from "framer-motion";
 interface EditorLanguageSelectorProps {
   currentLanguage: string;
   setCurrentLanguage: (value: string) => void;
@@ -47,14 +49,13 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
   isFirstPaste,
   formatError = false,
   formatSuccess = false,
-  setFormatSuccess,
 }) => {
-  const [open, setOpen] = useState(false);
+  const formatErrorDialog = useDisclosure(false);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 h-full">
       <Select value={currentLanguage} onValueChange={setCurrentLanguage}>
-        <SelectTrigger className="w-auto px-2 h-6 border-none outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium transition-colors">
+        <SelectTrigger className="w-auto min-w-24 px-2 h-6 border-none outline-none bg-foreground/10 hover:bg-foreground/5 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium transition-colors">
           <SelectValue placeholder={currentLanguage} />
         </SelectTrigger>
         <SelectContent>
@@ -74,11 +75,18 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
       </Select>
 
       {currentLanguage === "code" && (
+        <Separator
+          orientation="vertical"
+          className="max-h-4 mx-2 bg-foreground/10"
+        />
+      )}
+
+      {currentLanguage === "code" && (
         <Text
           variant="caption2"
           color="muted-foreground"
           weight="medium"
-          className="px-2 py-0.5 bg-foreground/10 rounded-full transition-colors flex items-center justify-center"
+          className="px-2 py-1 bg-foreground/10 rounded-full transition-colors flex items-center justify-center"
           noSelect
         >
           {SUPPORTED_LANGUAGES.find((lang) => lang.value === detectedLanguage)
@@ -93,11 +101,23 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div
+                <button
                   onClick={onFormatClick}
+                  disabled={
+                    !detectedLanguage ||
+                    detectedLanguage === null ||
+                    detectedLanguage === "code" ||
+                    (value.trim() === "" && !isFirstPaste) ||
+                    formatError
+                  }
                   className={cn(
-                    "px-2 py-0.5 hover:bg-foreground/10 rounded-sm transition-colors flex items-center justify-center cursor-pointer gap-2",
-                    formatError && "cursor-not-allowed"
+                    "px-2 py-1 hover:bg-foreground/10 rounded-sm transition-colors flex items-center justify-center cursor-pointer gap-2",
+                    (formatError ||
+                      !detectedLanguage ||
+                      detectedLanguage === null ||
+                      detectedLanguage === "code" ||
+                      (value.trim() === "" && !isFirstPaste)) &&
+                      "cursor-not-allowed"
                   )}
                 >
                   <Text
@@ -129,7 +149,7 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
                       )}
                     />
                   )}
-                </div>
+                </button>
               </TooltipTrigger>
               {formatError && (
                 <TooltipContent
@@ -142,7 +162,7 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
                   <p className="text-xs text-muted-foreground">
                     For more information, click{" "}
                     <button
-                      onClick={() => setOpen(true)}
+                      onClick={formatErrorDialog.toggle}
                       className="text-primary underline cursor-pointer"
                     >
                       here
@@ -153,8 +173,8 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
             </Tooltip>
           </TooltipProvider>
 
-          {open && (
-            <AlertDialog open={open}>
+          <AnimatePresence>
+            <AlertDialog open={formatErrorDialog.isOpen}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Format errors</AlertDialogTitle>
@@ -167,7 +187,7 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
                     </ul>
 
                     <p>
-                      We're continuously refining Flick's formatting
+                      We're continuously refining Flick™'s formatting
                       capabilities and expanding language support.
                     </p>
 
@@ -189,14 +209,14 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
                 <AlertDialogFooter>
                   <AlertDialogAction
                     className="text-foreground cursor-pointer"
-                    onClick={() => setOpen(false)}
+                    onClick={formatErrorDialog.toggle}
                   >
                     I understand
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          )}
+          </AnimatePresence>
         </div>
       )}
     </div>

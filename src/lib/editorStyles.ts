@@ -65,3 +65,52 @@ export const scrollbarStyles = `
     background-color: transparent;
   }
 `;
+
+export const editorLineNumberStyles = `
+  .editor {
+    counter-reset: line;
+    font-variant-ligatures: none;
+    min-height: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .editor pre {
+    padding-left: 60px !important;
+  }
+
+  .editor textarea {
+    outline: none !important;
+    padding-left: 60px !important;
+  }
+
+  /* Container styling for proper scrolling */
+  .editor-container {
+    position: relative;
+    height: 100%;
+    overflow: auto;
+  }
+  
+  /* Make sure the editor fills the container height */
+  .editor-container > div,
+  .editor-container > div > textarea,
+  .editor-container > div > pre {
+    height: 100% !important;
+    min-height: 100%;
+    box-sizing: border-box;
+  }
+
+  .editor .editorLineNumber {
+    position: absolute;
+    left: 0px;
+    color: var(--tw-text-foreground-50, rgba(245, 245, 245, 0.5));
+    text-align: right;
+    width: 40px;
+    font-size: 0.875rem;
+    font-weight: 400;
+    font-family: var(--font-mono, Roboto Mono, monospace);
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+    mix-blend-mode: screen;
+  }
+`;

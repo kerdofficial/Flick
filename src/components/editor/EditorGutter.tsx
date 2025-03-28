@@ -20,7 +20,7 @@ export const EditorGutter = forwardRef<HTMLDivElement, EditorGutterProps>(
           scrollbarWidth: "none",
         }}
       >
-        <div className="backdrop-blur-2xl bg-card/50 pt-1 pb-3">
+        <div className="backdrop-blur-2xl bg-card/50 pt-2 pb-3">
           {displayLines.map((_, i) => (
             <div
               key={i}
