@@ -43,13 +43,6 @@ export const formatCode = async (code: string, lang: string) => {
     const prettier = window.prettier;
     const plugins = window.prettierPlugins || {};
 
-    console.log(
-      "Attempting to format",
-      lang,
-      "with available plugins:",
-      Object.keys(plugins).join(", ")
-    );
-
     const config: any = {
       singleQuote: true,
       tabWidth: 2,
@@ -140,7 +133,6 @@ export const formatCode = async (code: string, lang: string) => {
     let errorMessage = "Failed to format code.";
 
     if (error instanceof Error) {
-      // Try to extract the most useful part of the error message
       errorMessage = error.message.split("\n")[0] || errorMessage;
     }
 
@@ -162,8 +154,6 @@ export const loadPrettier = async () => {
     const prettierScript = document.createElement("script");
     prettierScript.src = "https://unpkg.com/prettier@2.8.8/standalone.js";
     prettierScript.onload = () => {
-      console.log("Prettier standalone loaded successfully");
-
       if (!window.prettierPlugins) {
         window.prettierPlugins = {};
       }
@@ -194,15 +184,9 @@ export const loadPrettier = async () => {
       let loadedCount = 0;
       const totalPlugins = pluginScripts.length;
 
-      const onPluginLoad = (name: string) => {
-        console.log(`Prettier plugin loaded: ${name}`);
+      const onPluginLoad = (_name: string) => {
         loadedCount++;
         if (loadedCount === totalPlugins) {
-          console.log("All Prettier plugins loaded successfully");
-          console.log(
-            "Available plugins:",
-            Object.keys(window.prettierPlugins).join(", ")
-          );
           resolve();
         }
       };

@@ -27,6 +27,7 @@ export interface EditorHandlersProps {
   setFormatErrorMessage?: (message: string | null) => void;
   setFormatSuccess?: (success: boolean) => void;
   formatSuccess?: boolean;
+  updateFlickContent?: (content: string) => void;
 }
 
 export const createEditorHandlers = ({

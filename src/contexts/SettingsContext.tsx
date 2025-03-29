@@ -30,7 +30,6 @@ export const ACTIVATION_KEY_COMMANDS = [
   "ctrl+alt+n",
   "ctrl+shift+n",
   "ctrl+alt+space",
-  "ctrl+alt+1",
 ];
 
 export const CLOSE_BEHAVIOR_OPTIONS = [
@@ -103,7 +102,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
         };
 
         setSettings(mergedSettings as Settings);
-        console.log(mergedSettings);
       } catch (error) {
         console.error("Failed to load settings:", error);
         setSettings(defaultSettings);

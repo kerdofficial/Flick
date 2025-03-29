@@ -28,7 +28,6 @@ import {
   ACTIVATION_KEY_COMMANDS,
   CLOSE_BEHAVIOR_OPTIONS,
 } from "@/contexts/SettingsContext";
-import { useEffect } from "react";
 
 export const SettingsSheet = ({
   trigger,
@@ -40,11 +39,12 @@ export const SettingsSheet = ({
   toggle: () => void;
 }) => {
   const { settings, updateSettings } = useSettings();
-
-  // Handle autolaunch toggle
-  useEffect(() => {
-    // We'll handle this in the SettingsContext.tsx
-  }, [settings.autoLaunch]);
+  const os =
+    navigator.userAgent.toLowerCase().includes("mac") ||
+    navigator.userAgent.toLowerCase().includes("macintosh") ||
+    navigator.userAgent.toLowerCase().includes("darwin")
+      ? "mac"
+      : "windows";
 
   return (
     <Sheet open={isOpen} onOpenChange={toggle}>
@@ -188,7 +188,12 @@ export const SettingsSheet = ({
                   }
                 >
                   <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                    <SelectValue>{settings.activationKeyCommand}</SelectValue>
+                    <SelectValue>
+                      {settings.activationKeyCommand
+                        .split("+")
+                        .map((part) => part[0].toUpperCase() + part.slice(1))
+                        .join("+")}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {ACTIVATION_KEY_COMMANDS.map((command) => (
@@ -199,7 +204,14 @@ export const SettingsSheet = ({
                           noSelect
                           weight="medium"
                         >
-                          {command}
+                          {command
+                            .split("+")
+                            .map(
+                              (part) => part[0].toUpperCase() + part.slice(1)
+                            )
+                            .join("+")
+                            .replace("Ctrl", os === "mac" ? "⌘" : "Ctrl")
+                            .replace("Alt", os === "mac" ? "⌥" : "Alt")}
                         </Text>
                       </SelectItem>
                     ))}
@@ -344,14 +356,12 @@ export const SettingsSheet = ({
                       const fonts = ["Inter", "Roboto"];
                       const availableFonts = fonts.filter((font) => {
                         try {
-                          // Check if font is available in the system
                           return document.fonts.check(`12px "${font}"`);
                         } catch (e) {
                           return false;
                         }
                       });
 
-                      // Add system fonts based on platform
                       const platform = navigator.platform.toLowerCase();
                       const systemFonts = [];
 

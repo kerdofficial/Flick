@@ -29,8 +29,8 @@ import { Separator } from "../shadcn/separator";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { AnimatePresence } from "framer-motion";
 interface EditorLanguageSelectorProps {
-  currentLanguage: string;
-  setCurrentLanguage: (value: string) => void;
+  currentLanguage: "plaintext" | "code";
+  setCurrentLanguage: (value: "plaintext" | "code") => void;
   detectedLanguage: string | null;
   onFormatClick: () => void;
   value: string;

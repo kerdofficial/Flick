@@ -1,51 +1,72 @@
 import "./App.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Main, VStack } from "./components/layout";
 import { Titlebar } from "./components/Titlebar";
 import { CodeEditor } from "./components/codeEditor";
-import { Toaster } from "@/components/shadcn/sonner";
 import {
   register,
   unregister,
   isRegistered,
 } from "@tauri-apps/plugin-global-shortcut";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSettings } from "./contexts/SettingsContext";
 import { ACTIVATION_KEY_COMMANDS } from "./contexts/SettingsContext";
+import { useFlick } from "./contexts/FlickContext";
+import { v4 as uuidv4 } from "uuid";
+import { Window } from "@tauri-apps/api/window";
 
 function App() {
   const { settings } = useSettings();
-  const [isShortcutRegistered, setIsShortcutRegistered] = useState(false);
+  const { flick, setFlick } = useFlick();
+  const [_isShortcutRegistered, setIsShortcutRegistered] = useState(false);
   const currentShortcutRef = useRef<string | null>(null);
+  const isMountedRef = useRef(false);
+  const appWindow = Window.getCurrent();
 
-  useEffect(() => {
-    const initialCleanup = async () => {
-      const cleanupPromises = ACTIVATION_KEY_COMMANDS.map(async (shortcut) => {
-        try {
-          if (await isRegistered(shortcut)) {
-            await unregister(shortcut);
-            console.log(`Cleaned up shortcut: ${shortcut}`);
-          }
-        } catch (error) {
-          console.error(`Error cleaning up shortcut ${shortcut}:`, error);
-        }
-      });
+  const activeFlick = flick.length > 0 ? flick[flick.length - 1] : null;
 
-      await Promise.all(cleanupPromises);
-      console.log("Initial shortcut cleanup completed");
+  const handleNewFlick = () => {
+    setFlick([
+      ...flick,
+      {
+        id: uuidv4(),
+        name: "New Flick",
+        content: "",
+        updatedAt: new Date(),
+        isEdited: false,
+      },
+    ]);
+  };
+
+  useLayoutEffect(() => {
+    if (isMountedRef.current) return;
+    isMountedRef.current = true;
+
+    const cleanupShortcuts = async () => {
+      try {
+        await Promise.all(
+          ACTIVATION_KEY_COMMANDS.map(async (shortcut) => {
+            if (await isRegistered(shortcut)) {
+              await unregister(shortcut);
+            }
+          })
+        );
+      } catch (error) {
+        console.error("Error during initial cleanup:", error);
+      }
     };
 
-    initialCleanup();
+    cleanupShortcuts();
 
     return () => {
       const finalCleanup = async () => {
         try {
-          for (const shortcut of ACTIVATION_KEY_COMMANDS) {
-            if (await isRegistered(shortcut)) {
-              await unregister(shortcut);
-              console.log(`Final cleanup: unregistered ${shortcut}`);
-            }
-          }
+          await Promise.all(
+            ACTIVATION_KEY_COMMANDS.map(async (shortcut) => {
+              if (await isRegistered(shortcut)) {
+                await unregister(shortcut);
+              }
+            })
+          );
         } catch (error) {
           console.error("Final cleanup error:", error);
         }
@@ -58,28 +79,38 @@ function App() {
   useEffect(() => {
     if (!settings?.activationKeyCommand) return;
 
-    const setupShortcut = async () => {
-      for (const shortcut of ACTIVATION_KEY_COMMANDS) {
-        try {
-          if (await isRegistered(shortcut)) {
-            await unregister(shortcut);
-            console.log(`Unregistered previous shortcut: ${shortcut}`);
-          }
-        } catch (error) {
-          console.error(`Error unregistering ${shortcut}:`, error);
-        }
-      }
+    if (currentShortcutRef.current === settings.activationKeyCommand) return;
 
+    const setupShortcut = async () => {
       try {
-        await register(settings.activationKeyCommand, () => {
-          console.log(`Shortcut triggered: ${settings.activationKeyCommand}`);
+        await Promise.all(
+          ACTIVATION_KEY_COMMANDS.map(async (shortcut) => {
+            if (await isRegistered(shortcut)) {
+              await unregister(shortcut);
+            }
+          })
+        );
+
+        await register(settings.activationKeyCommand, async () => {
+          handleNewFlick();
+
+          try {
+            const isVisible = await appWindow.isVisible();
+            if (!isVisible) {
+              await appWindow.show();
+              await appWindow.setFocus();
+              const isMinimized = await appWindow.isMinimized();
+              if (isMinimized) {
+                await appWindow.unminimize();
+              }
+            }
+          } catch (error) {
+            console.error("Error showing window:", error);
+          }
         });
 
         currentShortcutRef.current = settings.activationKeyCommand;
         setIsShortcutRegistered(true);
-        console.log(
-          `Successfully registered shortcut: ${settings.activationKeyCommand}`
-        );
       } catch (error) {
         console.error(
           `Failed to register ${settings.activationKeyCommand}:`,
@@ -90,37 +121,37 @@ function App() {
     };
 
     setupShortcut();
-
-    return () => {};
   }, [settings?.activationKeyCommand]);
 
   return (
-    <ThemeProvider>
-      <Main
-        stack="VStack"
-        fullWidth
+    <Main
+      stack="VStack"
+      fullWidth
+      fullHeight
+      spacing="none"
+      alignment="leading"
+      wrap="nowrap"
+      distribution="start"
+      className="bg-card pt-8"
+      noOverflow
+    >
+      <Titlebar />
+      <VStack
         fullHeight
-        spacing="none"
+        fullWidth
+        spacing="md"
         alignment="leading"
-        wrap="nowrap"
         distribution="start"
-        className="bg-card pt-8"
-        noOverflow
+        wrap="nowrap"
       >
-        <Titlebar />
-        <VStack
-          fullHeight
-          fullWidth
-          spacing="md"
-          alignment="leading"
-          distribution="start"
-          wrap="nowrap"
-        >
-          <CodeEditor height="100%" />
-        </VStack>
-      </Main>
-      <Toaster />
-    </ThemeProvider>
+        <CodeEditor
+          height="100%"
+          language={settings.defaultLanguage}
+          flickId={activeFlick?.id}
+          key={activeFlick?.id}
+        />
+      </VStack>
+    </Main>
   );
 }
 

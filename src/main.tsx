@@ -1,13 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { SettingsProvider } from "./contexts/SettingsContext";
+import { Providers } from "./contexts/Providers";
 
-// Render the application
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <SettingsProvider>
+    <Providers>
       <App />
-    </SettingsProvider>
+    </Providers>
   </React.StrictMode>
 );

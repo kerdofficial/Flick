@@ -15,67 +15,143 @@ import { AnimatePresence } from "framer-motion";
 import { AboutDialog } from "./aboutDialog";
 import { UpdateDialog } from "./updateDialog";
 import { useSettings } from "@/contexts/SettingsContext";
-import { TrayIcon } from "@tauri-apps/api/tray";
+import { TrayIcon, TrayIconEvent } from "@tauri-apps/api/tray";
 import { defaultWindowIcon } from "@tauri-apps/api/app";
 import { Menu as TauriMenu } from "@tauri-apps/api/menu";
+import { useFlick } from "@/contexts/FlickContext";
+import { v4 as uuidv4 } from "uuid";
+import { useEffect, useRef } from "react";
+
+const TRAY_ID = "flick-tray";
 
 export function Titlebar() {
   const appWindow = Window.getCurrent();
+  const trayIconRef = useRef<TrayIcon | null>(null);
 
   const { settings } = useSettings();
+  const { flick, setFlick } = useFlick();
+
+  useEffect(() => {
+    return () => {};
+  }, []);
+
+  const ensureWindowVisible = async () => {
+    try {
+      await appWindow.show();
+
+      await appWindow.setFocus();
+
+      const isMinimized = await appWindow.isMinimized();
+      if (isMinimized) {
+        await appWindow.unminimize();
+      }
+    } catch (error) {
+      console.error("Error making window visible:", error);
+    }
+  };
 
   const handleMinimize = async () => await appWindow.minimize();
   const handleMaximize = async () => await appWindow.toggleMaximize();
+
   const handleClose = async () => {
     if (settings.closeBehavior === "quit") {
       await appWindow.destroy();
     } else if (settings.closeBehavior === "tray") {
-      const menu = await TauriMenu.new({
-        items: [
-          {
-            id: "new-flick",
-            text: "New Flick",
-            action: () => {
-              console.log("new flick");
-            },
-          },
-          {
-            id: "open",
-            text: "Open Flick™",
-            action: () => {
-              appWindow.show();
-            },
-          },
-          {
-            id: "settings",
-            text: "Settings",
-            action: () => {
-              console.log("settings");
-            },
-          },
-          {
-            id: "quit",
-            text: "Quit Flick™",
-            action: () => {
-              appWindow.destroy();
-            },
-          },
-        ],
-      });
+      try {
+        if (trayIconRef.current) {
+          await appWindow.hide();
+          return;
+        }
 
-      const options = {
-        icon: await defaultWindowIcon(),
-        tooltip: "Flick",
-        menu,
-        showMenuOnLeftClick: true,
-      };
+        const menu = await TauriMenu.new({
+          items: [
+            {
+              id: "new-flick",
+              text: "New Flick",
+              action: async () => {
+                setFlick([
+                  ...flick,
+                  {
+                    id: uuidv4(),
+                    name: "New Flick",
+                    content: "",
+                    updatedAt: new Date(),
+                    isEdited: false,
+                  },
+                ]);
+                await ensureWindowVisible();
+              },
+            },
+            {
+              id: "open",
+              text: "Open Flick™",
+              action: async () => {
+                await ensureWindowVisible();
+              },
+            },
+            {
+              id: "settings",
+              text: "Settings",
+              action: async () => {
+                await ensureWindowVisible();
+              },
+            },
+            {
+              id: "quit",
+              text: "Quit Flick™",
+              action: () => {
+                appWindow.destroy();
+              },
+            },
+          ],
+        });
 
-      await TrayIcon.new(options as any);
+        const icon = await defaultWindowIcon();
 
-      await appWindow.hide();
+        if (icon) {
+          const options = {
+            id: TRAY_ID,
+            icon,
+            tooltip: "Flick",
+            menu,
+            showMenuOnLeftClick: false,
+            doubleClickAction: "show",
+            action: async (event: TrayIconEvent) => {
+              if (event.type === "Click") {
+                await ensureWindowVisible();
+              }
+            },
+          };
+
+          trayIconRef.current = await TrayIcon.new(options);
+        } else {
+          console.error("Failed to load application icon");
+        }
+
+        await appWindow.hide();
+      } catch (error) {
+        console.error("Failed to create tray icon:", error);
+      }
     } else if (settings.closeBehavior === "dock") {
       await appWindow.minimize();
     }
+  };
+
+  const handleDestroy = () => {
+    appWindow.destroy();
+  };
+
+  const handleNewFlick = () => {
+    setFlick([
+      ...flick,
+      {
+        id: uuidv4(),
+        name: "New Flick",
+        content: "",
+        updatedAt: new Date(),
+        isEdited: false,
+      },
+    ]);
   };
 
   const settingsOpen = useDisclosure(false);
@@ -94,7 +170,7 @@ export function Titlebar() {
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="bg-card ml-2">
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleNewFlick}>
             <Text variant="caption">New Flick</Text>
           </DropdownMenuItem>
 
@@ -116,7 +192,7 @@ export function Titlebar() {
           <DropdownMenuItem onClick={checkForUpdatesOpen.toggle}>
             <Text variant="caption">Check for Updates</Text>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleClose}>
+          <DropdownMenuItem onClick={handleDestroy}>
             <Text variant="caption">Quit</Text>
           </DropdownMenuItem>
         </DropdownMenuContent>
