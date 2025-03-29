@@ -84,7 +84,7 @@ export function Titlebar() {
             },
             {
               id: "open",
-              text: "Open Flick™",
+              text: "Open Flick",
               action: async () => {
                 await ensureWindowVisible();
               },
@@ -94,11 +94,12 @@ export function Titlebar() {
               text: "Settings",
               action: async () => {
                 await ensureWindowVisible();
+                settingsOpen.toggle();
               },
             },
             {
               id: "quit",
-              text: "Quit Flick™",
+              text: "Quit Flick",
               action: () => {
                 appWindow.destroy();
               },
@@ -117,7 +118,7 @@ export function Titlebar() {
             showMenuOnLeftClick: false,
             doubleClickAction: "show",
             action: async (event: TrayIconEvent) => {
-              if (event.type === "Click") {
+              if (event.type === "Click" && event.button === "Left") {
                 await ensureWindowVisible();
               }
             },
@@ -174,12 +175,12 @@ export function Titlebar() {
             <Text variant="caption">New Flick</Text>
           </DropdownMenuItem>
 
-          <DropdownMenuItem>
-            <Text variant="caption">Save Current</Text>
+          <DropdownMenuItem disabled>
+            <Text variant="caption">Save (Coming Soon)</Text>
           </DropdownMenuItem>
 
-          <DropdownMenuItem>
-            <Text variant="caption">Open</Text>
+          <DropdownMenuItem disabled>
+            <Text variant="caption">Open (Coming Soon)</Text>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="w-11/12 mx-auto" />
           <DropdownMenuItem onClick={settingsOpen.toggle}>
@@ -187,10 +188,7 @@ export function Titlebar() {
           </DropdownMenuItem>
           <DropdownMenuSeparator className="w-11/12 mx-auto" />
           <DropdownMenuItem onClick={aboutOpen.toggle}>
-            <Text variant="caption">About Flick™</Text>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={checkForUpdatesOpen.toggle}>
-            <Text variant="caption">Check for Updates</Text>
+            <Text variant="caption">About Flick</Text>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleDestroy}>
             <Text variant="caption">Quit</Text>
@@ -206,7 +204,7 @@ export function Titlebar() {
         data-tauri-drag-region
         className="absolute left-1/2 -translate-x-1/2"
       >
-        Flick™
+        Flick
       </Text>
 
       <div className="flex items-center gap-1">

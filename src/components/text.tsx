@@ -84,6 +84,7 @@ interface TextProps
   color?: string;
   disabled?: boolean;
   noSelect?: boolean;
+  htmlFor?: string;
 }
 
 const Text = React.forwardRef<HTMLElementTypes, TextProps>(
@@ -100,6 +101,7 @@ const Text = React.forwardRef<HTMLElementTypes, TextProps>(
       color,
       disabled = false,
       noSelect = false,
+      htmlFor,
       ...props
     },
     ref

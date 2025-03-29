@@ -67,7 +67,9 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
                 noSelect
                 weight="medium"
               >
-                {language.charAt(0).toUpperCase() + language.slice(1)}
+                {language === "plaintext"
+                  ? "Plain Text"
+                  : language.charAt(0).toUpperCase() + language.slice(1)}
               </Text>
             </SelectItem>
           ))}
@@ -187,7 +189,7 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
                     </ul>
 
                     <p>
-                      We're continuously refining Flick™'s formatting
+                      We're continuously refining Flick's formatting
                       capabilities and expanding language support.
                     </p>
 

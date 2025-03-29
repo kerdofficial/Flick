@@ -28,6 +28,7 @@ import {
   ACTIVATION_KEY_COMMANDS,
   CLOSE_BEHAVIOR_OPTIONS,
 } from "@/contexts/SettingsContext";
+import { Label } from "./shadcn/label";
 
 export const SettingsSheet = ({
   trigger,
@@ -53,14 +54,14 @@ export const SettingsSheet = ({
         <SheetHeader className="pb-0">
           <SheetTitle className="text-lg font-semibold">Settings</SheetTitle>
           <SheetDescription className="text-xs text-pretty max-w-sm">
-            Customize your experience with Flick™ through a variety of settings
+            Customize your experience with Flick through a variety of settings
             and preferences.
           </SheetDescription>
           <Separator className="my-2 w-10/12 mx-auto" />
         </SheetHeader>
 
         <Tabs defaultValue="general" className="px-4">
-          <TabsList className="grid w-full grid-cols-3 gap-2">
+          <TabsList className="grid w-full grid-cols-2 gap-2">
             <TabsTrigger
               value="general"
               className="text-xs h-full data-[state=active]:bg-card cursor-pointer"
@@ -72,12 +73,6 @@ export const SettingsSheet = ({
               className="text-xs h-full data-[state=active]:bg-card cursor-pointer"
             >
               Editor
-            </TabsTrigger>
-            <TabsTrigger
-              value="appearance"
-              className="text-xs h-full data-[state=active]:bg-card cursor-pointer"
-            >
-              Appearance
             </TabsTrigger>
           </TabsList>
 
@@ -97,7 +92,7 @@ export const SettingsSheet = ({
                     color="muted-foreground"
                     className="text-[11px]"
                   >
-                    Start Flick™ automatically when you turn on your computer.
+                    Start Flick automatically when you turn on your computer.
                   </Text>
                 </VStack>
                 <HStack fullWidth alignment="center" distribution="start">
@@ -107,10 +102,14 @@ export const SettingsSheet = ({
                     onCheckedChange={(checked) =>
                       updateSettings({ autoLaunch: checked === true })
                     }
+                    id="autoLaunch"
                   />
-                  <Text variant="caption">
-                    Launch Flick™ with your computer
-                  </Text>
+                  <Label
+                    htmlFor="autoLaunch"
+                    className="text-xs font-normal opacity-80"
+                  >
+                    Launch Flick with your computer
+                  </Label>
                 </HStack>
               </VStack>
 
@@ -128,7 +127,7 @@ export const SettingsSheet = ({
                     color="muted-foreground"
                     className="text-[11px]"
                   >
-                    Choose what happens when you close Flick™.
+                    Choose what happens when you close Flick.
                   </Text>
                 </VStack>
                 <Select
@@ -264,7 +263,10 @@ export const SettingsSheet = ({
                           noSelect
                           weight="medium"
                         >
-                          {language.charAt(0).toUpperCase() + language.slice(1)}
+                          {language === "plaintext"
+                            ? "Plain Text"
+                            : language.charAt(0).toUpperCase() +
+                              language.slice(1)}
                         </Text>
                       </SelectItem>
                     ))}

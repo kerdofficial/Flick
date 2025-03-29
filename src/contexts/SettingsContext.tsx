@@ -19,10 +19,10 @@ const defaultSettings: Settings = {
   closeBehavior: "tray",
   activationKeyCommand: "ctrl+alt+n",
   defaultLanguage: "plaintext",
-  fontSize: 14,
+  fontSize: 16,
   fontFamily: {
     plaintext: "Inter",
-    code: "JetBrains Mono",
+    code: "Roboto Mono",
   },
 };
 
