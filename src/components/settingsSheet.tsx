@@ -16,7 +16,6 @@ import {
 } from "./shadcn/select";
 import { HStack, VStack } from "./layout";
 import { Text } from "./text";
-import { useState } from "react";
 import { Checkbox } from "./shadcn/checkbox";
 import {
   Tabs,
@@ -24,64 +23,12 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/shadcn/tabs";
-
-const ACTIVATION_KEY_COMMANDS = [
-  {
-    labels: {
-      windows: "CTRL + ALT + N (Default)",
-      mac: "CMD + ALT + N (Default)",
-    },
-    values: {
-      windows: "ctrl+alt+n",
-      mac: "cmd+alt+n",
-    },
-  },
-  {
-    labels: {
-      windows: "CTRL + Shift + N",
-      mac: "CMD + Shift + N",
-    },
-    values: {
-      windows: "ctrl+shift+n",
-      mac: "cmd+shift+n",
-    },
-  },
-  {
-    labels: {
-      windows: "CTRL + ALT + Space",
-      mac: "CMD + ALT + Space",
-    },
-    values: {
-      windows: "ctrl+alt+space",
-      mac: "cmd+alt+space",
-    },
-  },
-  {
-    labels: {
-      windows: "CTRL + Shift + Tilde (~)",
-      mac: "CMD + Shift + Tilde (~)",
-    },
-    values: {
-      windows: "ctrl+shift+~",
-      mac: "cmd+shift+~",
-    },
-  },
-];
-
-const CLOSE_BEHAVIOR_OPTIONS = [
-  {
-    label: "Minimize to the system tray",
-    value: "tray",
-  },
-  {
-    label: "Keep on the taskbar",
-    value: "taskbar",
-  },
-  {
-    label: "Close Flick™",
-    value: "close",
-  },
-];
+import {
+  useSettings,
+  ACTIVATION_KEY_COMMANDS,
+  CLOSE_BEHAVIOR_OPTIONS,
+} from "@/contexts/SettingsContext";
+import { useEffect } from "react";
 
 export const SettingsSheet = ({
   trigger,
@@ -92,25 +39,12 @@ export const SettingsSheet = ({
   isOpen: boolean;
   toggle: () => void;
 }) => {
-  const [activationKeyCommand, setActivationKeyCommand] = useState(
-    ACTIVATION_KEY_COMMANDS[0]
-  );
-  const [defaultLanguage, setDefaultLanguage] = useState("plaintext");
-  const [fontSize, setFontSize] = useState("16px");
-  const [fontFamily, setFontFamily] = useState({
-    plaintext: "Inter",
-    code: "Roboto Mono",
-  });
-  const [closeBehavior, setCloseBehavior] = useState(CLOSE_BEHAVIOR_OPTIONS[0]);
-  const [autoFormat, setAutoFormat] = useState(true);
-  const [autoLaunch, setAutoLaunch] = useState(true);
+  const { settings, updateSettings } = useSettings();
 
-  const operatingSystem =
-    navigator.userAgent.toLowerCase().includes("mac") ||
-    navigator.userAgent.toLowerCase().includes("macintosh") ||
-    navigator.userAgent.toLowerCase().includes("darwin")
-      ? "mac"
-      : "windows";
+  // Handle autolaunch toggle
+  useEffect(() => {
+    // We'll handle this in the SettingsContext.tsx
+  }, [settings.autoLaunch]);
 
   return (
     <Sheet open={isOpen} onOpenChange={toggle}>
@@ -169,9 +103,9 @@ export const SettingsSheet = ({
                 <HStack fullWidth alignment="center" distribution="start">
                   <Checkbox
                     className="data-[state=checked]:bg-foreground/80 data-[state=checked]:border-none outline-none ring-0"
-                    checked={autoLaunch}
+                    checked={settings.autoLaunch}
                     onCheckedChange={(checked) =>
-                      setAutoLaunch(checked === true)
+                      updateSettings({ autoLaunch: checked === true })
                     }
                   />
                   <Text variant="caption">
@@ -198,17 +132,19 @@ export const SettingsSheet = ({
                   </Text>
                 </VStack>
                 <Select
-                  value={closeBehavior.value}
+                  value={settings.closeBehavior}
                   onValueChange={(value) =>
-                    setCloseBehavior(
-                      CLOSE_BEHAVIOR_OPTIONS.find(
-                        (option) => option.value === value
-                      ) || CLOSE_BEHAVIOR_OPTIONS[1]
-                    )
+                    updateSettings({
+                      closeBehavior: value as "quit" | "tray",
+                    })
                   }
                 >
                   <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                    <SelectValue placeholder={closeBehavior.label} />
+                    <SelectValue>
+                      {CLOSE_BEHAVIOR_OPTIONS.find(
+                        (option) => option.value === settings.closeBehavior
+                      )?.label || settings.closeBehavior}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {CLOSE_BEHAVIOR_OPTIONS.map((option) => (
@@ -246,33 +182,24 @@ export const SettingsSheet = ({
                   </Text>
                 </VStack>
                 <Select
-                  value={activationKeyCommand.values[operatingSystem]}
+                  value={settings.activationKeyCommand}
                   onValueChange={(value) =>
-                    setActivationKeyCommand(
-                      ACTIVATION_KEY_COMMANDS.find(
-                        (command) => command.values[operatingSystem] === value
-                      ) || ACTIVATION_KEY_COMMANDS[0]
-                    )
+                    updateSettings({ activationKeyCommand: value })
                   }
                 >
                   <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                    <SelectValue
-                      placeholder={activationKeyCommand.labels[operatingSystem]}
-                    />
+                    <SelectValue>{settings.activationKeyCommand}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {ACTIVATION_KEY_COMMANDS.map((command) => (
-                      <SelectItem
-                        key={command.values[operatingSystem]}
-                        value={command.values[operatingSystem]}
-                      >
+                      <SelectItem key={command} value={command}>
                         <Text
                           variant="caption"
                           color="muted-foreground"
                           noSelect
                           weight="medium"
                         >
-                          {command.labels[operatingSystem]}
+                          {command}
                         </Text>
                       </SelectItem>
                     ))}
@@ -303,11 +230,18 @@ export const SettingsSheet = ({
                   </Text>
                 </VStack>
                 <Select
-                  value={defaultLanguage}
-                  onValueChange={setDefaultLanguage}
+                  value={settings.defaultLanguage}
+                  onValueChange={(value) =>
+                    updateSettings({
+                      defaultLanguage: value as "plaintext" | "code",
+                    })
+                  }
                 >
                   <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                    <SelectValue placeholder={defaultLanguage} />
+                    <SelectValue>
+                      {settings.defaultLanguage.charAt(0).toUpperCase() +
+                        settings.defaultLanguage.slice(1)}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {["plaintext", "code"].map((language) => (
@@ -334,59 +268,6 @@ export const SettingsSheet = ({
                 spacing="sm2"
               >
                 <VStack spacing="xs">
-                  <Text variant="body2">Activation Key Command</Text>
-                  <Text
-                    variant="caption"
-                    color="muted-foreground"
-                    className="text-[11px]"
-                  >
-                    Set the key combination to activate the app and create a new
-                    Flick.
-                  </Text>
-                </VStack>
-                <Select
-                  value={activationKeyCommand.values[operatingSystem]}
-                  onValueChange={(value) =>
-                    setActivationKeyCommand(
-                      ACTIVATION_KEY_COMMANDS.find(
-                        (command) => command.values[operatingSystem] === value
-                      ) || ACTIVATION_KEY_COMMANDS[0]
-                    )
-                  }
-                >
-                  <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                    <SelectValue
-                      placeholder={activationKeyCommand.labels[operatingSystem]}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ACTIVATION_KEY_COMMANDS.map((command) => (
-                      <SelectItem
-                        key={command.values[operatingSystem]}
-                        value={command.values[operatingSystem]}
-                      >
-                        <Text
-                          variant="caption"
-                          color="muted-foreground"
-                          noSelect
-                          weight="medium"
-                        >
-                          {command.labels[operatingSystem]}
-                        </Text>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </VStack>
-
-              <VStack
-                wrap="nowrap"
-                fullWidth
-                alignment="leading"
-                distribution="start"
-                spacing="sm2"
-              >
-                <VStack spacing="xs">
                   <Text variant="body2">Font Size</Text>
                   <Text
                     variant="caption"
@@ -397,28 +278,25 @@ export const SettingsSheet = ({
                     across all Flicks.
                   </Text>
                 </VStack>
-                <Select value={fontSize} onValueChange={setFontSize}>
+                <Select
+                  value={String(settings.fontSize)}
+                  onValueChange={(value) =>
+                    updateSettings({ fontSize: Number(value) })
+                  }
+                >
                   <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                    <SelectValue placeholder={fontSize} />
+                    <SelectValue>{settings.fontSize}px</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {[
-                      "12px",
-                      "14px",
-                      "16px",
-                      "18px",
-                      "20px",
-                      "22px",
-                      "24px",
-                    ].map((size) => (
-                      <SelectItem key={size} value={size}>
+                    {[12, 14, 16, 18, 20, 22, 24].map((size) => (
+                      <SelectItem key={String(size)} value={String(size)}>
                         <Text
                           variant="caption"
                           color="muted-foreground"
                           noSelect
                           weight="medium"
                         >
-                          {size === "16px" ? `${size} (Default)` : size}
+                          {size === 16 ? `${size}px (Default)` : `${size}px`}
                         </Text>
                       </SelectItem>
                     ))}
@@ -444,125 +322,134 @@ export const SettingsSheet = ({
                     across all Flicks.
                   </Text>
                 </VStack>
-                <HStack
-                  fullWidth
-                  alignment="center"
-                  distribution="start"
-                  spacing="md"
+                <Select
+                  value={settings.fontFamily.plaintext}
+                  onValueChange={(value) =>
+                    updateSettings({
+                      fontFamily: {
+                        plaintext: value,
+                        code: settings.fontFamily.code,
+                      },
+                    })
+                  }
                 >
-                  <Text variant="caption">Plaintext</Text>
-                  <Select
-                    value={fontFamily.plaintext}
-                    onValueChange={(value) =>
-                      setFontFamily({ ...fontFamily, plaintext: value })
-                    }
-                  >
-                    <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                      <SelectValue placeholder={fontFamily.plaintext} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[
-                        "Inter",
-                        "Roboto",
-                        "Arial",
-                        "Helvetica",
-                        "Times New Roman",
-                        "Georgia",
-                        "Garamond",
-                      ].map((family) => (
-                        <SelectItem key={family} value={family}>
-                          <Text
-                            variant="caption"
-                            color="muted-foreground"
-                            noSelect
-                            weight="medium"
-                          >
-                            {family === "Inter"
-                              ? `${family} (Default)`
-                              : family}
-                          </Text>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </HStack>
-                <HStack
-                  fullWidth
-                  alignment="center"
-                  distribution="start"
-                  spacing="md"
-                >
-                  <Text variant="caption">Code</Text>
-                  <Select
-                    value={fontFamily.code}
-                    onValueChange={(value) =>
-                      setFontFamily({ ...fontFamily, code: value })
-                    }
-                  >
-                    <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                      <SelectValue placeholder={fontFamily.code} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[
-                        "Roboto Mono",
-                        "Monaco",
-                        "Consolas",
-                        "Courier New",
-                        "Courier",
-                        "Lucida Console",
-                        "Monospace",
-                        "Inconsolata",
-                        "Fira Mono",
-                        "Source Code Pro",
-                        "Anonymous Pro",
-                        "Hack",
-                      ].map((family) => (
-                        <SelectItem key={family} value={family}>
-                          <Text
-                            variant="caption"
-                            color="muted-foreground"
-                            noSelect
-                            weight="medium"
-                          >
-                            {family === "Roboto Mono"
-                              ? `${family} (Default)`
-                              : family}
-                          </Text>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </HStack>
-              </VStack>
+                  <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
+                    <SelectValue>
+                      {settings.fontFamily.plaintext.charAt(0).toUpperCase() +
+                        settings.fontFamily.plaintext.slice(1)}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(() => {
+                      const fonts = ["Inter", "Roboto"];
+                      const availableFonts = fonts.filter((font) => {
+                        try {
+                          // Check if font is available in the system
+                          return document.fonts.check(`12px "${font}"`);
+                        } catch (e) {
+                          return false;
+                        }
+                      });
 
-              <VStack
-                wrap="nowrap"
-                fullWidth
-                alignment="leading"
-                distribution="start"
-                spacing="sm2"
-              >
-                <VStack spacing="xs">
-                  <Text variant="body2">Auto Format (Beta)</Text>
-                  <Text
-                    variant="caption"
-                    color="muted-foreground"
-                    className="text-[11px]"
-                  >
-                    Automatically format your code when you paste it into a
-                    Flick.
-                  </Text>
-                </VStack>
-                <HStack fullWidth alignment="center" distribution="start">
-                  <Checkbox
-                    className="data-[state=checked]:bg-foreground/80 data-[state=checked]:border-none outline-none ring-0"
-                    checked={autoFormat}
-                    onCheckedChange={(checked) =>
-                      setAutoFormat(checked === true)
-                    }
-                  />
-                  <Text variant="caption">Format code automatically</Text>
-                </HStack>
+                      // Add system fonts based on platform
+                      const platform = navigator.platform.toLowerCase();
+                      const systemFonts = [];
+
+                      if (platform.includes("mac")) {
+                        systemFonts.push(
+                          "-apple-system",
+                          "BlinkMacSystemFont",
+                          "Helvetica Neue"
+                        );
+                      } else if (platform.includes("win")) {
+                        systemFonts.push(
+                          "Segoe UI",
+                          "Tahoma",
+                          "Arial",
+                          "Times New Roman"
+                        );
+                      } else if (platform.includes("linux")) {
+                        systemFonts.push("Ubuntu", "Cantarell", "DejaVu Sans");
+                      }
+
+                      const availableSystemFonts = systemFonts.filter(
+                        (font) => {
+                          try {
+                            return document.fonts.check(`12px "${font}"`);
+                          } catch (e) {
+                            return false;
+                          }
+                        }
+                      );
+
+                      return [...availableFonts, ...availableSystemFonts];
+                    })().map((family) => (
+                      <SelectItem key={family} value={family}>
+                        <Text
+                          variant="caption"
+                          color="muted-foreground"
+                          noSelect
+                          weight="medium"
+                        >
+                          {family === "Inter" ? `${family} (Default)` : family}
+                        </Text>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={settings.fontFamily.code}
+                  onValueChange={(value) =>
+                    updateSettings({
+                      fontFamily: {
+                        plaintext: settings.fontFamily.plaintext,
+                        code: value,
+                      },
+                    })
+                  }
+                >
+                  <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
+                    <SelectValue>
+                      {settings.fontFamily.code.charAt(0).toUpperCase() +
+                        settings.fontFamily.code.slice(1)}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(() => {
+                      let fonts = [
+                        "Roboto Mono",
+                        "Courier New",
+                        "Lucida Console",
+                        "Consolas",
+                      ];
+                      const platform = navigator.platform.toLowerCase();
+                      if (platform.includes("mac")) {
+                        fonts.push("Menlo", "Monaco", "SF Mono");
+                      } else if (platform.includes("linux")) {
+                        fonts.push(
+                          "Ubuntu Mono",
+                          "DejaVu Sans Mono",
+                          "Liberation Mono"
+                        );
+                      }
+                      return fonts;
+                    })().map((family) => (
+                      <SelectItem key={family} value={family}>
+                        <Text
+                          variant="caption"
+                          color="muted-foreground"
+                          noSelect
+                          weight="medium"
+                        >
+                          {family === "Roboto Mono"
+                            ? `${family} (Default)`
+                            : family}
+                        </Text>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </VStack>
             </VStack>
           </TabsContent>

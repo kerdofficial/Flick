@@ -14,13 +14,69 @@ import { useDisclosure } from "@/hooks/useDisclosure";
 import { AnimatePresence } from "framer-motion";
 import { AboutDialog } from "./aboutDialog";
 import { UpdateDialog } from "./updateDialog";
+import { useSettings } from "@/contexts/SettingsContext";
+import { TrayIcon } from "@tauri-apps/api/tray";
+import { defaultWindowIcon } from "@tauri-apps/api/app";
+import { Menu as TauriMenu } from "@tauri-apps/api/menu";
 
 export function Titlebar() {
   const appWindow = Window.getCurrent();
 
+  const { settings } = useSettings();
+
   const handleMinimize = async () => await appWindow.minimize();
   const handleMaximize = async () => await appWindow.toggleMaximize();
-  const handleClose = async () => await appWindow.close();
+  const handleClose = async () => {
+    if (settings.closeBehavior === "quit") {
+      await appWindow.destroy();
+    } else if (settings.closeBehavior === "tray") {
+      const menu = await TauriMenu.new({
+        items: [
+          {
+            id: "new-flick",
+            text: "New Flick",
+            action: () => {
+              console.log("new flick");
+            },
+          },
+          {
+            id: "open",
+            text: "Open Flick™",
+            action: () => {
+              appWindow.show();
+            },
+          },
+          {
+            id: "settings",
+            text: "Settings",
+            action: () => {
+              console.log("settings");
+            },
+          },
+          {
+            id: "quit",
+            text: "Quit Flick™",
+            action: () => {
+              appWindow.destroy();
+            },
+          },
+        ],
+      });
+
+      const options = {
+        icon: await defaultWindowIcon(),
+        tooltip: "Flick",
+        menu,
+        showMenuOnLeftClick: true,
+      };
+
+      await TrayIcon.new(options as any);
+
+      await appWindow.hide();
+    } else if (settings.closeBehavior === "dock") {
+      await appWindow.minimize();
+    }
+  };
 
   const settingsOpen = useDisclosure(false);
   const aboutOpen = useDisclosure(false);
@@ -112,8 +168,13 @@ export function Titlebar() {
       </div>
       <div className="absolute right-0">
         <AnimatePresence>
-          <AboutDialog isOpen={aboutOpen.isOpen} toggle={aboutOpen.toggle} />
+          <AboutDialog
+            key="about-dialog"
+            isOpen={aboutOpen.isOpen}
+            toggle={aboutOpen.toggle}
+          />
           <UpdateDialog
+            key="update-dialog"
             isOpen={checkForUpdatesOpen.isOpen}
             toggle={checkForUpdatesOpen.toggle}
           />

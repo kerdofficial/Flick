@@ -39,8 +39,11 @@
     "@radix-ui/react-toggle-group": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@tailwindcss/vite": "^4.0.17",
-    "@tauri-apps/api": "^2",
+    "@tauri-apps/api": "^2.4.0",
+    "@tauri-apps/plugin-autostart": "^2.2.0",
+    "@tauri-apps/plugin-global-shortcut": "~2",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-store": "^2.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -66,7 +69,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2",
+    "@tauri-apps/cli": "^2.4.0",
     "@types/node": "^22.13.13",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",

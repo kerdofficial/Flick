@@ -6,6 +6,7 @@ import { scrollbarStyles } from "@/lib/editorStyles";
 import { EditorStatusIndicator } from "./editor/EditorStatusIndicator";
 import { EditorLanguageSelector } from "./editor/EditorLanguageSelector";
 import { createEditorHandlers } from "./editor/EditorHandlers";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export interface CodeEditorProps {
   initialValue?: string;
@@ -21,15 +22,23 @@ export interface CodeEditorProps {
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
   initialValue = "",
-  language = "plaintext",
+  language,
   onChange,
-  placeholder = "Type here...",
+  placeholder,
   readOnly = false,
   className = "",
   height = "300px",
-  autoDetectLanguage = true,
-  autoFormat = true,
+  autoDetectLanguage,
+  autoFormat,
 }) => {
+  const { settings } = useSettings();
+
+  // Use settings or props with props taking precedence
+  const effectiveLanguage = language || settings.defaultLanguage;
+  const effectiveAutoDetect = autoDetectLanguage ?? true;
+  // Set autoFormat to true by default
+  const effectiveAutoFormat = autoFormat ?? true;
+
   const [value, setValue] = useState(initialValue);
   const [lines, setLines] = useState<string[]>(initialValue.split("\n"));
   const [lastEdited, setLastEdited] = useState(
@@ -45,8 +54,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const gutterRef = useRef<HTMLDivElement>(null);
-  const [currentLanguage, setCurrentLanguage] = useState(language);
-  const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholder);
+  const [currentLanguage, setCurrentLanguage] = useState(effectiveLanguage);
+  const [currentPlaceholder, setCurrentPlaceholder] = useState(
+    placeholder || "Type here..."
+  );
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [selectedFormatLanguage, setSelectedFormatLanguage] = useState("auto");
@@ -186,7 +197,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         detectedLanguage &&
         hasDetectedOnce === false &&
         currentLanguage === "code" &&
-        autoFormat
+        effectiveAutoFormat
       ) {
         setHasDetectedOnce(true);
         const result = await formatCode(value, detectedLanguage);
@@ -210,7 +221,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     detectedLanguage,
     hasDetectedOnce,
     currentLanguage,
-    autoFormat,
+    effectiveAutoFormat,
     value,
     onChange,
   ]);
@@ -258,8 +269,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     isFirstPaste,
     setHasDetectedOnce,
     detectedLanguage,
-    autoDetectLanguage,
-    autoFormat,
+    autoDetectLanguage: effectiveAutoDetect,
+    autoFormat: effectiveAutoFormat,
     onFormatError: handleFormatError,
     setFormatErrorMessage,
     setFormatSuccess,
@@ -306,11 +317,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               "px-4 pb-4 bg-transparent w-full h-full outline-none resize-none overflow-auto scrollbar-textarea selection:bg-foreground/75 selection:text-accent font-medium"
             )}
             style={{
-              fontFamily:
-                currentLanguage === "code"
-                  ? "Roboto Mono, monospace"
-                  : "Inter, sans-serif",
-              fontSize: "1rem",
+              fontFamily: `${
+                currentLanguage === "plaintext"
+                  ? `"${settings.fontFamily.plaintext}", sans-serif`
+                  : `"${settings.fontFamily.code}", monospace`
+              }`,
+
+              fontSize: `${settings.fontSize}px`,
               whiteSpace: "pre",
               scrollbarColor: "rgba(140, 140, 140, 0.3) transparent",
             }}
