@@ -60,9 +60,8 @@ export const AboutDialog = ({
           </Text>
           <Text variant="body2" className="leading-relaxed">
             Flick is a native desktop application built with Tauri, providing
-            exceptional performance with a small footprint. Available for macOS,
-            Windows, and Linux, it's designed to feel right at home on your
-            system.
+            exceptional performance with a small footprint. Available for
+            Windows, with support for macOS and Linux coming soon.
           </Text>
 
           <Text variant="caption" className="pt-2">

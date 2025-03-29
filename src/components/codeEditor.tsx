@@ -419,8 +419,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         <EditorStatusIndicator saveState={saveState} lastEdited={lastEdited} />
       </div>
 
-      <div ref={wrapperRef} className="flex flex-1 relative w-full">
-        <div className="w-full h-full relative flex-grow textarea-scrollbar pt-10">
+      <div ref={wrapperRef} className="flex flex-1 relative w-full max-w-full">
+        <div className="w-full h-full relative flex-grow textarea-scrollbar pt-10 max-w-full">
           <textarea
             ref={textareaRef}
             value={localContent}
@@ -432,8 +432,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             placeholder={currentPlaceholder}
             readOnly={readOnly}
             spellCheck={false}
+            wrap="hard"
+            cols={10}
             className={cn(
-              "px-4 pb-4 w-full h-full outline-none resize-none overflow-auto scrollbar-textarea selection:bg-foreground/75 selection:text-accent font-medium bg-transparent"
+              "px-4 pb-4 w-full h-full outline-none resize-none overflow-y-auto scrollbar-textarea selection:bg-foreground/75 selection:text-accent font-medium bg-transparent text-wrap max-w-full break-words whitespace-pre-wrap"
             )}
             style={{
               fontFamily: `${
@@ -443,7 +445,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               }`,
 
               fontSize: `${settings.fontSize}px`,
-              whiteSpace: "pre",
               scrollbarColor: "rgba(140, 140, 140, 0.3) transparent",
             }}
           />
