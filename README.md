@@ -1,8 +1,12 @@
 # Flick
 
-![Flick Banner](./src-tauri/icons/icon.png)
+<p align="center">
+  <img src="./src-tauri/icons/icon.png" alt="Flick Banner" width="128">
+</p>
 
+<p align="center">
 A beautifully simple note-taking application for your desktop. Flick lets you capture thoughts and code snippets with an elegant, distraction-free interface.
+</p
 
 ## Features
 
@@ -14,8 +18,16 @@ A beautifully simple note-taking application for your desktop. Flick lets you ca
 
 ## Screenshots
 
+#### Plain Text
+
 ![Plain Text Mode](./assets/screenshot-text.png)
+
+#### Code
+
 ![Code Mode](./assets/screenshot-code.png)
+
+#### Settings
+
 ![Settings Menu](./assets/screenshot-settings.png)
 
 ## Installation
@@ -89,7 +101,8 @@ Contributions are welcome! Feel free to submit issues or pull requests.
 
 ## License
 
-[MIT](LICENSE) © KerD
+[Modified MIT](LICENSE) © KerD  
+This project is licensed under the MIT License with additional restrictions. See the [LICENSE](LICENSE) file for details.
 
 ---
 
