@@ -41,7 +41,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/kerdofficial/flick/releases/latest/download/latest.json"
+        "https://raw.githubusercontent.com/kerdofficial/Flick/feature/updater/latest.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFEREE3RkJCNkExNUM0N0UKUldSK3hCVnF1My9hclFGcCtlS3AwRmxZN2VSalpUWVA1dmVwSS9saS94M05LY3BJZmI1MkxRc20K",
       "windows": {
