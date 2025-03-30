@@ -90,6 +90,14 @@ export function Titlebar() {
               },
             },
             {
+              id: "check-updates",
+              text: "Check for Updates",
+              action: async () => {
+                await ensureWindowVisible();
+                checkForUpdatesOpen.toggle();
+              },
+            },
+            {
               id: "settings",
               text: "Settings",
               action: async () => {
@@ -185,6 +193,9 @@ export function Titlebar() {
           <DropdownMenuSeparator className="w-11/12 mx-auto" />
           <DropdownMenuItem onClick={settingsOpen.toggle}>
             <Text variant="caption">Settings</Text>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={checkForUpdatesOpen.toggle}>
+            <Text variant="caption">Check for Updates</Text>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="w-11/12 mx-auto" />
           <DropdownMenuItem onClick={aboutOpen.toggle}>

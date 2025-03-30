@@ -61,7 +61,7 @@ export const SettingsSheet = ({
         </SheetHeader>
 
         <Tabs defaultValue="general" className="px-4">
-          <TabsList className="grid w-full grid-cols-2 gap-2">
+          <TabsList className="grid w-full grid-cols-2 gap-2 bg-foreground/10 dark:bg-muted">
             <TabsTrigger
               value="general"
               className="text-xs h-full data-[state=active]:bg-card cursor-pointer"
@@ -336,132 +336,144 @@ export const SettingsSheet = ({
                     across all Flicks.
                   </Text>
                 </VStack>
-                <Select
-                  value={settings.fontFamily.plaintext}
-                  onValueChange={(value) =>
-                    updateSettings({
-                      fontFamily: {
-                        plaintext: value,
-                        code: settings.fontFamily.code,
-                      },
-                    })
-                  }
-                >
-                  <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                    <SelectValue>
-                      {settings.fontFamily.plaintext.charAt(0).toUpperCase() +
-                        settings.fontFamily.plaintext.slice(1)}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(() => {
-                      const fonts = ["Inter", "Roboto"];
-                      const availableFonts = fonts.filter((font) => {
-                        try {
-                          return document.fonts.check(`12px "${font}"`);
-                        } catch (e) {
-                          return false;
-                        }
-                      });
-
-                      const platform = navigator.platform.toLowerCase();
-                      const systemFonts = [];
-
-                      if (platform.includes("mac")) {
-                        systemFonts.push(
-                          "-apple-system",
-                          "BlinkMacSystemFont",
-                          "Helvetica Neue"
-                        );
-                      } else if (platform.includes("win")) {
-                        systemFonts.push(
-                          "Segoe UI",
-                          "Tahoma",
-                          "Arial",
-                          "Times New Roman"
-                        );
-                      } else if (platform.includes("linux")) {
-                        systemFonts.push("Ubuntu", "Cantarell", "DejaVu Sans");
-                      }
-
-                      const availableSystemFonts = systemFonts.filter(
-                        (font) => {
+                <div className="grid grid-cols-2 gap-2 w-full items-center">
+                  <Text variant="caption">Plain Text</Text>
+                  <Select
+                    value={settings.fontFamily.plaintext}
+                    onValueChange={(value) =>
+                      updateSettings({
+                        fontFamily: {
+                          plaintext: value,
+                          code: settings.fontFamily.code,
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
+                      <SelectValue>
+                        {settings.fontFamily.plaintext.charAt(0).toUpperCase() +
+                          settings.fontFamily.plaintext.slice(1)}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(() => {
+                        const fonts = ["Inter", "Roboto"];
+                        const availableFonts = fonts.filter((font) => {
                           try {
                             return document.fonts.check(`12px "${font}"`);
                           } catch (e) {
                             return false;
                           }
+                        });
+
+                        const platform = navigator.platform.toLowerCase();
+                        const systemFonts = [];
+
+                        if (platform.includes("mac")) {
+                          systemFonts.push(
+                            "-apple-system",
+                            "BlinkMacSystemFont",
+                            "Helvetica Neue"
+                          );
+                        } else if (platform.includes("win")) {
+                          systemFonts.push(
+                            "Segoe UI",
+                            "Tahoma",
+                            "Arial",
+                            "Times New Roman"
+                          );
+                        } else if (platform.includes("linux")) {
+                          systemFonts.push(
+                            "Ubuntu",
+                            "Cantarell",
+                            "DejaVu Sans"
+                          );
                         }
-                      );
 
-                      return [...availableFonts, ...availableSystemFonts];
-                    })().map((family) => (
-                      <SelectItem key={family} value={family}>
-                        <Text
-                          variant="caption"
-                          color="muted-foreground"
-                          noSelect
-                          weight="medium"
-                        >
-                          {family === "Inter" ? `${family} (Default)` : family}
-                        </Text>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={settings.fontFamily.code}
-                  onValueChange={(value) =>
-                    updateSettings({
-                      fontFamily: {
-                        plaintext: settings.fontFamily.plaintext,
-                        code: value,
-                      },
-                    })
-                  }
-                >
-                  <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                    <SelectValue>
-                      {settings.fontFamily.code.charAt(0).toUpperCase() +
-                        settings.fontFamily.code.slice(1)}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(() => {
-                      let fonts = [
-                        "Roboto Mono",
-                        "Courier New",
-                        "Lucida Console",
-                        "Consolas",
-                      ];
-                      const platform = navigator.platform.toLowerCase();
-                      if (platform.includes("mac")) {
-                        fonts.push("Menlo", "Monaco", "SF Mono");
-                      } else if (platform.includes("linux")) {
-                        fonts.push(
-                          "Ubuntu Mono",
-                          "DejaVu Sans Mono",
-                          "Liberation Mono"
+                        const availableSystemFonts = systemFonts.filter(
+                          (font) => {
+                            try {
+                              return document.fonts.check(`12px "${font}"`);
+                            } catch (e) {
+                              return false;
+                            }
+                          }
                         );
-                      }
-                      return fonts;
-                    })().map((family) => (
-                      <SelectItem key={family} value={family}>
-                        <Text
-                          variant="caption"
-                          color="muted-foreground"
-                          noSelect
-                          weight="medium"
-                        >
-                          {family === "Roboto Mono"
-                            ? `${family} (Default)`
-                            : family}
-                        </Text>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+                        return [...availableFonts, ...availableSystemFonts];
+                      })().map((family) => (
+                        <SelectItem key={family} value={family}>
+                          <Text
+                            variant="caption"
+                            color="muted-foreground"
+                            noSelect
+                            weight="medium"
+                          >
+                            {family === "Inter"
+                              ? `${family} (Default)`
+                              : family}
+                          </Text>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 w-full items-center">
+                  <Text variant="caption">Code</Text>
+                  <Select
+                    value={settings.fontFamily.code}
+                    onValueChange={(value) =>
+                      updateSettings({
+                        fontFamily: {
+                          plaintext: settings.fontFamily.plaintext,
+                          code: value,
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
+                      <SelectValue>
+                        {settings.fontFamily.code.charAt(0).toUpperCase() +
+                          settings.fontFamily.code.slice(1)}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(() => {
+                        let fonts = [
+                          "Roboto Mono",
+                          "Courier New",
+                          "Lucida Console",
+                          "Consolas",
+                        ];
+                        const platform = navigator.platform.toLowerCase();
+                        if (platform.includes("mac")) {
+                          fonts.push("Menlo", "Monaco", "SF Mono");
+                        } else if (platform.includes("linux")) {
+                          fonts.push(
+                            "Ubuntu Mono",
+                            "DejaVu Sans Mono",
+                            "Liberation Mono"
+                          );
+                        }
+                        return fonts;
+                      })().map((family) => (
+                        <SelectItem key={family} value={family}>
+                          <Text
+                            variant="caption"
+                            color="muted-foreground"
+                            noSelect
+                            weight="medium"
+                          >
+                            {family === "Roboto Mono"
+                              ? `${family} (Default)`
+                              : family}
+                          </Text>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </VStack>
             </VStack>
           </TabsContent>

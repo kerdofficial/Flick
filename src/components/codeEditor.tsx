@@ -435,7 +435,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             wrap="hard"
             cols={10}
             className={cn(
-              "px-4 pb-4 w-full h-full outline-none resize-none overflow-y-auto scrollbar-textarea selection:bg-foreground/75 selection:text-accent font-medium bg-transparent text-wrap max-w-full break-words whitespace-pre-wrap"
+              "px-4 pb-4 pt-1 w-full h-full outline-none resize-none overflow-y-auto scrollbar-textarea selection:bg-foreground/75 selection:text-accent font-medium bg-transparent text-wrap max-w-full break-words whitespace-pre-wrap",
+              settings.fontSize <= 14 && "leading-4.5",
+              settings.fontSize === 16 && "leading-5.5",
+              settings.fontSize >= 18 && settings.fontSize < 22 && "leading-6",
+              settings.fontSize >= 22 && "leading-7"
             )}
             style={{
               fontFamily: `${

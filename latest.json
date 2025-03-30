@@ -1,0 +1,11 @@
+{
+  "version": "0.5.4",
+  "notes": "Implemented Updater API for automatic updates",
+  "pub_date": "2025-03-30T12:34:56Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSK3hCVnF1My9hclJacFBUR1pvdEVZcGxlUC96SFAvN0NtVm1TL3luNE9UMHZ5cXYrdDliOVl1UmdFbUhKTWhPQ2I4ZzhqMWFyZVUyQWdhZWxNRnFTNisxSHMvTDB6OHdvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQzMzQyMzM0CWZpbGU6RmxpY2tfMC41LjRfeDY0X2VuLVVTLm1zaQpFOVlLRVViL3RnVDZwWU5vcnFxc1o3dWRIa3hPSGVSUFk3QXY4THhVM2dPTnVZdklkd3pFSjRIT21wRndzZ1ZYL0JrdTBPQktnTmw5ZGd3ZEZsdHdCUT09Cg==",
+      "url": "https://github.com/kerdofficial/flick/releases/download/0.5.4/Flick_0.5.4_x64_en-US.msi"
+    }
+  }
+}
