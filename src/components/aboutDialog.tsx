@@ -65,7 +65,7 @@ export const AboutDialog = ({
           </Text>
 
           <Text variant="caption" className="pt-2">
-            Version 0.5.4 • Made by{" "}
+            Version 0.5.3-1 • Made by{" "}
             <Text
               variant="link"
               onClick={OpenGitHub}
