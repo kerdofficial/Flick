@@ -74,7 +74,10 @@ export function Titlebar() {
                   {
                     id: uuidv4(),
                     name: "New Flick",
-                    content: "",
+                    content: {
+                      plaintext: "",
+                      code: "",
+                    },
                     updatedAt: new Date(),
                     isEdited: false,
                   },
@@ -156,7 +159,10 @@ export function Titlebar() {
       {
         id: uuidv4(),
         name: "New Flick",
-        content: "",
+        content: {
+          plaintext: "",
+          code: "",
+        },
         updatedAt: new Date(),
         isEdited: false,
       },

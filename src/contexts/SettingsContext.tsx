@@ -7,7 +7,10 @@ type Settings = {
   closeBehavior: "quit" | "tray" | "dock";
   activationKeyCommand: string;
   defaultLanguage: "plaintext" | "code";
-  fontSize: number;
+  fontSize: {
+    plaintext: number;
+    code: number;
+  };
   fontFamily: {
     plaintext: string;
     code: string;
@@ -19,7 +22,10 @@ const defaultSettings: Settings = {
   closeBehavior: "tray",
   activationKeyCommand: "ctrl+alt+n",
   defaultLanguage: "plaintext",
-  fontSize: 16,
+  fontSize: {
+    plaintext: 16,
+    code: 16,
+  },
   fontFamily: {
     plaintext: "Inter",
     code: "Roboto Mono",
@@ -64,41 +70,118 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(true);
         const store = await load("settings.json");
 
-        const storedSettings = await Promise.all([
-          store.get<boolean>("autoLaunch"),
-          store.get<"quit" | "tray" | "dock">("closeBehavior"),
-          store.get<string>("activationKeyCommand"),
-          store.get<string>("defaultLanguage"),
-          store.get<number>("fontSize"),
-          store.get<string>("fontFamily"),
-        ]);
+        const getSafeSetting = async <T,>(
+          key: string,
+          defaultValue: T,
+          validator?: (value: any) => boolean
+        ): Promise<T> => {
+          try {
+            const value = await store.get<T>(key);
+
+            if (value === undefined || (validator && !validator(value))) {
+              return defaultValue;
+            }
+
+            return value;
+          } catch (error) {
+            console.warn(`Error loading setting "${key}":`, error);
+            return defaultValue;
+          }
+        };
+
+        let fontSizeValue: typeof defaultSettings.fontSize;
+        try {
+          const rawFontSize = await store.get("fontSize");
+
+          if (typeof rawFontSize === "number") {
+            fontSizeValue = {
+              plaintext: rawFontSize,
+              code: rawFontSize,
+            };
+            await store.set("fontSize", fontSizeValue);
+            console.log("Migrated fontSize from number to object format");
+          } else if (!rawFontSize || typeof rawFontSize !== "object") {
+            fontSizeValue = defaultSettings.fontSize;
+          } else {
+            const fontSizeObj = rawFontSize as Partial<
+              typeof defaultSettings.fontSize
+            >;
+            fontSizeValue = {
+              plaintext:
+                typeof fontSizeObj.plaintext === "number"
+                  ? fontSizeObj.plaintext
+                  : defaultSettings.fontSize.plaintext,
+              code:
+                typeof fontSizeObj.code === "number"
+                  ? fontSizeObj.code
+                  : defaultSettings.fontSize.code,
+            };
+          }
+        } catch (error) {
+          console.warn("Error handling fontSize setting:", error);
+          fontSizeValue = defaultSettings.fontSize;
+        }
+
+        let fontFamilyValue: typeof defaultSettings.fontFamily;
+        try {
+          const rawFontFamily = await store.get("fontFamily");
+
+          if (!rawFontFamily || typeof rawFontFamily !== "object") {
+            fontFamilyValue = defaultSettings.fontFamily;
+          } else {
+            const fontFamilyObj = rawFontFamily as Partial<
+              typeof defaultSettings.fontFamily
+            >;
+            fontFamilyValue = {
+              plaintext:
+                typeof fontFamilyObj.plaintext === "string"
+                  ? fontFamilyObj.plaintext
+                  : defaultSettings.fontFamily.plaintext,
+              code:
+                typeof fontFamilyObj.code === "string"
+                  ? fontFamilyObj.code
+                  : defaultSettings.fontFamily.code,
+            };
+          }
+        } catch (error) {
+          console.warn("Error handling fontFamily setting:", error);
+          fontFamilyValue = defaultSettings.fontFamily;
+        }
+
+        const autoLaunch = await getSafeSetting<boolean>(
+          "autoLaunch",
+          defaultSettings.autoLaunch,
+          (val) => typeof val === "boolean"
+        );
+
+        const closeBehavior = await getSafeSetting<"quit" | "tray" | "dock">(
+          "closeBehavior",
+          defaultSettings.closeBehavior,
+          (val) =>
+            typeof val === "string" && ["quit", "tray", "dock"].includes(val)
+        );
+
+        const activationKeyCommand = await getSafeSetting<string>(
+          "activationKeyCommand",
+          defaultSettings.activationKeyCommand,
+          (val) =>
+            typeof val === "string" && ACTIVATION_KEY_COMMANDS.includes(val)
+        );
+
+        const defaultLanguage = await getSafeSetting<"plaintext" | "code">(
+          "defaultLanguage",
+          defaultSettings.defaultLanguage,
+          (val) =>
+            typeof val === "string" && ["plaintext", "code"].includes(val)
+        );
 
         const mergedSettings = {
-          ...defaultSettings,
-          autoLaunch:
-            storedSettings[0] !== undefined
-              ? storedSettings[0]
-              : defaultSettings.autoLaunch,
-          closeBehavior:
-            storedSettings[1] !== undefined
-              ? storedSettings[1]
-              : defaultSettings.closeBehavior,
-          activationKeyCommand:
-            storedSettings[2] !== undefined
-              ? storedSettings[2]
-              : defaultSettings.activationKeyCommand,
-          defaultLanguage:
-            storedSettings[3] !== undefined
-              ? storedSettings[3]
-              : defaultSettings.defaultLanguage,
-          fontSize:
-            storedSettings[4] !== undefined
-              ? storedSettings[4]
-              : defaultSettings.fontSize,
-          fontFamily:
-            storedSettings[5] !== undefined
-              ? storedSettings[5]
-              : defaultSettings.fontFamily,
+          autoLaunch,
+          closeBehavior,
+          activationKeyCommand,
+          defaultLanguage,
+          fontSize: fontSizeValue,
+          fontFamily: fontFamilyValue,
         };
 
         setSettings(mergedSettings as Settings);
@@ -159,10 +242,68 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         settings,
         updateSettings: (newSettings: Partial<Settings>) => {
-          setSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }));
+          setSettings((prevSettings) => {
+            const updatedSettings = JSON.parse(
+              JSON.stringify(prevSettings)
+            ) as Settings;
+
+            if (newSettings.fontSize) {
+              const fontSizeUpdate = newSettings.fontSize as Partial<
+                typeof defaultSettings.fontSize
+              >;
+
+              if (typeof fontSizeUpdate.plaintext === "number") {
+                updatedSettings.fontSize.plaintext = fontSizeUpdate.plaintext;
+              }
+
+              if (typeof fontSizeUpdate.code === "number") {
+                updatedSettings.fontSize.code = fontSizeUpdate.code;
+              }
+            }
+
+            if (newSettings.fontFamily) {
+              const fontFamilyUpdate = newSettings.fontFamily as Partial<
+                typeof defaultSettings.fontFamily
+              >;
+
+              if (typeof fontFamilyUpdate.plaintext === "string") {
+                updatedSettings.fontFamily.plaintext =
+                  fontFamilyUpdate.plaintext;
+              }
+
+              if (typeof fontFamilyUpdate.code === "string") {
+                updatedSettings.fontFamily.code = fontFamilyUpdate.code;
+              }
+            }
+
+            if (typeof newSettings.autoLaunch === "boolean") {
+              updatedSettings.autoLaunch = newSettings.autoLaunch;
+            }
+
+            if (
+              typeof newSettings.closeBehavior === "string" &&
+              ["quit", "tray", "dock"].includes(newSettings.closeBehavior)
+            ) {
+              updatedSettings.closeBehavior = newSettings.closeBehavior;
+            }
+
+            if (
+              typeof newSettings.activationKeyCommand === "string" &&
+              ACTIVATION_KEY_COMMANDS.includes(newSettings.activationKeyCommand)
+            ) {
+              updatedSettings.activationKeyCommand =
+                newSettings.activationKeyCommand;
+            }
+
+            if (
+              typeof newSettings.defaultLanguage === "string" &&
+              ["plaintext", "code"].includes(newSettings.defaultLanguage)
+            ) {
+              updatedSettings.defaultLanguage = newSettings.defaultLanguage;
+            }
+
+            return updatedSettings;
+          });
         },
       }}
     >

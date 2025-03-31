@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "../shadcn/select";
 import { SUPPORTED_LANGUAGES } from "@/lib/codeFormatter";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, Columns2, CheckCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipProvider,
@@ -38,6 +38,8 @@ interface EditorLanguageSelectorProps {
   formatError?: boolean;
   formatSuccess?: boolean;
   setFormatSuccess?: (value: boolean) => void;
+  tabMode: boolean;
+  setTabMode: (value: boolean) => void;
 }
 
 export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
@@ -49,13 +51,15 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
   isFirstPaste,
   formatError = false,
   formatSuccess = false,
+  tabMode,
+  setTabMode,
 }) => {
   const formatErrorDialog = useDisclosure(false);
 
   return (
     <div className="flex items-center gap-2 h-full">
       <Select value={currentLanguage} onValueChange={setCurrentLanguage}>
-        <SelectTrigger className="w-auto min-w-24 px-2 h-6 border-none outline-none bg-foreground/10 hover:bg-foreground/5 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium transition-colors">
+        <SelectTrigger className="w-auto min-w-24 px-2 h-6 border-none outline-none bg-foreground/10 hover:bg-foreground/5 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium transition-colors mr-2">
           <SelectValue placeholder={currentLanguage} />
         </SelectTrigger>
         <SelectContent>
@@ -79,7 +83,7 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
       {currentLanguage === "code" && (
         <Separator
           orientation="vertical"
-          className="max-h-4 mx-2 bg-foreground/10"
+          className="max-h-4 mr-2 bg-foreground/10"
         />
       )}
 
@@ -156,12 +160,12 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
               {formatError && (
                 <TooltipContent
                   side="bottom"
-                  className="border border-border shadow-lg"
+                  className="border border-border shadow-lg flex flex-col items-center justify-center gap-0.5"
                 >
-                  <p className="text-xs font-medium text-rose-500 dark:text-rose-400">
+                  <Text variant="caption2" color="destructive" weight="medium">
                     Format error occurred
-                  </p>
-                  <p className="text-xs text-muted-foreground">
+                  </Text>
+                  <Text variant="caption2" color="muted-foreground">
                     For more information, click{" "}
                     <button
                       onClick={formatErrorDialog.toggle}
@@ -169,7 +173,7 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
                     >
                       here
                     </button>
-                  </p>
+                  </Text>
                 </TooltipContent>
               )}
             </Tooltip>
@@ -221,6 +225,33 @@ export const EditorLanguageSelector: React.FC<EditorLanguageSelectorProps> = ({
           </AnimatePresence>
         </div>
       )}
+
+      <Separator
+        orientation="vertical"
+        className="max-h-4 mr-2 bg-foreground/10"
+      />
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Columns2
+              className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+              onClick={() => setTabMode(!tabMode)}
+            />
+          </TooltipTrigger>
+          <TooltipContent
+            side="bottom"
+            className="border border-border shadow-lg flex flex-col items-center justify-center gap-0.5"
+          >
+            <Text variant="caption2" color="muted-foreground" weight="medium">
+              Toggle Tab Mode
+            </Text>
+            <Text variant="caption2" color="muted-foreground">
+              {tabMode ? "Enabled" : "Disabled"}
+            </Text>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };

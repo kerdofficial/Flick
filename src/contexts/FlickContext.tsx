@@ -4,7 +4,10 @@ import { v4 as uuidv4 } from "uuid";
 type Flick = {
   id: string;
   name: string;
-  content: string;
+  content: {
+    plaintext: string;
+    code: string;
+  };
   updatedAt: Date;
   isEdited: boolean;
 };
@@ -12,7 +15,10 @@ type Flick = {
 const defaultFlick: Flick = {
   id: uuidv4(),
   name: "New Flick",
-  content: "",
+  content: {
+    plaintext: "",
+    code: "",
+  },
   updatedAt: new Date(),
   isEdited: false,
 };

@@ -42,9 +42,7 @@ export const EditorStatusIndicator: React.FC<EditorStatusIndicatorProps> = ({
               )}
             </TooltipTrigger>
             <TooltipContent
-              sideOffset={
-                saveState === "editing" || saveState === "waiting" ? 5 : 4
-              }
+              side="bottom"
               className="border border-border shadow-lg"
             >
               {saveState === "empty" && "Flick is empty"}

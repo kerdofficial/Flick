@@ -6,6 +6,7 @@ export interface EditorHandlersProps {
   value: string;
   setValue: (value: string) => void;
   textareaRef: RefObject<HTMLTextAreaElement>;
+  textTabareaRef: RefObject<HTMLTextAreaElement>;
   gutterRef: RefObject<HTMLDivElement>;
   setCursorPosition: (position: number | null) => void;
   onChange?: (value: string) => void;
@@ -28,12 +29,15 @@ export interface EditorHandlersProps {
   setFormatSuccess?: (success: boolean) => void;
   formatSuccess?: boolean;
   updateFlickContent?: (content: string) => void;
+  setLocalTabContent?: (content: string) => void;
+  updateFlickTabContent?: (content: string) => void;
 }
 
 export const createEditorHandlers = ({
   value,
   setValue,
   textareaRef,
+  textTabareaRef,
   gutterRef,
   setCursorPosition,
   onChange,
@@ -53,6 +57,8 @@ export const createEditorHandlers = ({
   setFormatErrorMessage,
   setFormatSuccess,
   formatSuccess,
+  setLocalTabContent,
+  updateFlickTabContent,
 }: EditorHandlersProps) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Tab") {
@@ -139,6 +145,88 @@ export const createEditorHandlers = ({
     if (
       autoDetectLanguage &&
       currentLanguage === "code" &&
+      newValue.length > 50
+    ) {
+      if (detectionTimeoutRef.current) {
+        clearTimeout(detectionTimeoutRef.current);
+      }
+
+      detectionTimeoutRef.current = setTimeout(() => {
+        const detected = detectCodeLanguage(newValue);
+        if (detected) {
+          setDetectedLanguage(detected);
+        }
+      }, 500);
+    }
+  };
+
+  const handleTabChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+
+    if (setLocalTabContent) {
+      setLocalTabContent(newValue);
+    }
+
+    if (setFormatErrorMessage) {
+      setFormatErrorMessage(null);
+    }
+
+    if (setFormatSuccess && formatSuccess) {
+      setFormatSuccess(false);
+    }
+
+    if (newValue === "") {
+    } else {
+      setSaveState("editing");
+
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      saveTimeoutRef.current = setTimeout(() => {
+        setSaveState("waiting");
+
+        if (currentLanguage === "plaintext" && newValue.length > 50) {
+          const detected = detectCodeLanguage(newValue);
+          if (detected) {
+            setDetectedLanguage(detected);
+          }
+        }
+
+        setTimeout(() => {
+          setSaveState("saving");
+
+          if (updateFlickTabContent) {
+            updateFlickTabContent(newValue);
+          }
+
+          setTimeout(() => {
+            setSaveState("saved");
+          }, 800);
+        }, 200);
+      }, 1500);
+    }
+
+    setLastEdited(
+      new Date().toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+    );
+
+    setTimeout(() => {
+      if (textTabareaRef.current && gutterRef.current) {
+        gutterRef.current.scrollTop = textTabareaRef.current.scrollTop;
+      }
+    }, 0);
+
+    if (
+      autoDetectLanguage &&
+      currentLanguage === "plaintext" &&
       newValue.length > 50
     ) {
       if (detectionTimeoutRef.current) {
@@ -268,5 +356,6 @@ export const createEditorHandlers = ({
     handleSelect,
     handlePaste,
     handleFormatClick,
+    handleTabChange,
   };
 };

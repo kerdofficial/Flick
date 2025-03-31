@@ -283,6 +283,7 @@ export const SettingsSheet = ({
               >
                 <VStack spacing="xs">
                   <Text variant="body2">Font Size</Text>
+
                   <Text
                     variant="caption"
                     color="muted-foreground"
@@ -292,30 +293,70 @@ export const SettingsSheet = ({
                     across all Flicks.
                   </Text>
                 </VStack>
-                <Select
-                  value={String(settings.fontSize)}
-                  onValueChange={(value) =>
-                    updateSettings({ fontSize: Number(value) })
-                  }
-                >
-                  <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
-                    <SelectValue>{settings.fontSize}px</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[12, 14, 16, 18, 20, 22, 24].map((size) => (
-                      <SelectItem key={String(size)} value={String(size)}>
-                        <Text
-                          variant="caption"
-                          color="muted-foreground"
-                          noSelect
-                          weight="medium"
-                        >
-                          {size === 16 ? `${size}px (Default)` : `${size}px`}
-                        </Text>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="grid grid-cols-2 gap-2 w-full items-center">
+                  <Text variant="caption">Plain Text</Text>
+                  <Select
+                    value={String(settings.fontSize.plaintext)}
+                    onValueChange={(value) =>
+                      updateSettings({
+                        fontSize: {
+                          plaintext: Number(value),
+                          code: settings.fontSize.code,
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
+                      <SelectValue>{settings.fontSize.plaintext}px</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[12, 14, 16, 18, 20, 22, 24].map((size) => (
+                        <SelectItem key={String(size)} value={String(size)}>
+                          <Text
+                            variant="caption"
+                            color="muted-foreground"
+                            noSelect
+                            weight="medium"
+                          >
+                            {size === 16 ? `${size}px (Default)` : `${size}px`}
+                          </Text>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-2 w-full items-center">
+                  <Text variant="caption">Code</Text>
+                  <Select
+                    value={String(settings.fontSize.code)}
+                    onValueChange={(value) =>
+                      updateSettings({
+                        fontSize: {
+                          plaintext: settings.fontSize.plaintext,
+                          code: Number(value),
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger className="min-w-1/3 w-auto px-2 h-8 outline-none hover:bg-foreground/10 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-medium text-xs transition-colors">
+                      <SelectValue>{settings.fontSize.code}px</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[12, 14, 16, 18, 20, 22, 24].map((size) => (
+                        <SelectItem key={String(size)} value={String(size)}>
+                          <Text
+                            variant="caption"
+                            color="muted-foreground"
+                            noSelect
+                            weight="medium"
+                          >
+                            {size === 16 ? `${size}px (Default)` : `${size}px`}
+                          </Text>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </VStack>
 
               <VStack

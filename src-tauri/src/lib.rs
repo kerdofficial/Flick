@@ -50,8 +50,14 @@ async fn download_and_install_update(app: tauri::AppHandle) -> Result<(), String
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_prevent_default::init())
+    let mut builder = tauri::Builder::default();
+    
+    #[cfg(not(debug_assertions))]
+    {
+        builder = builder.plugin(tauri_plugin_prevent_default::init());
+    }
+    
+    builder
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_process::init())
