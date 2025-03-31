@@ -289,8 +289,8 @@ export const SettingsSheet = ({
                     color="muted-foreground"
                     className="text-[11px]"
                   >
-                    Change the font size of the text or code in the editor
-                    across all Flicks.
+                    Change the font size of the text or code distinctly in the
+                    editor across all Flicks.
                   </Text>
                 </VStack>
                 <div className="grid grid-cols-2 gap-2 w-full items-center">

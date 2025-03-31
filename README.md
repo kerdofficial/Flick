@@ -26,6 +26,9 @@ A beautifully simple note-taking application for your desktop. Flick lets you ca
 
 ![Code Mode](./assets/screenshot-code.png)
 
+#### Tab Mode
+![Tab Mode](./assets/screenshot-tab-mode.png)
+
 #### Settings
 
 ![Settings Menu](./assets/screenshot-settings.png)
