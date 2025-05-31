@@ -24,7 +24,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-store = "2"
 tauri-plugin-autostart = "2.2.0"
-tokio = { version = "1.44.1", features = ["full"] }
+tokio = { version = "1.44.2", features = ["full"] }
 tauri-plugin-prevent-default = "1.2"
 tauri-plugin-shell = "2"
 tauri-plugin-updater = "2"
